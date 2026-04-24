@@ -1,0 +1,35 @@
+{% extends "admin/layout.html" %}
+{% block page_title %}تنظیمات{% endblock %}
+{% block content %}
+<h2>کاربران</h2>
+<table class="table">
+  <thead><tr><th>#</th><th>نام کاربری</th><th>ایمیل</th><th>نقش</th><th>فعال</th><th>عملیات</th></tr></thead>
+  <tbody>
+  {% for u in users %}
+    <tr>
+      <td>{{ u.id }}</td>
+      <td>{{ u.username }}</td>
+      <td>{{ u.email }}</td>
+      <td><span class="role role-{{ u.role.value }}">{{ u.role.value }}</span></td>
+      <td>{{ 'بله' if u.is_active else 'خیر' }}</td>
+      <td>
+        <form method="post" action="/admin/settings/users/{{ u.id }}/toggle" style="display:inline">
+          <button>{{ 'غیرفعال' if u.is_active else 'فعال' }}</button>
+        </form>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+<h2>افزودن کاربر</h2>
+<form method="post" action="/admin/settings/users/new" class="form-grid">
+  <label>نام کاربری<input name="username" required></label>
+  <label>ایمیل<input name="email" type="email" required></label>
+  <label>رمز عبور<input name="password" type="password" required minlength="8"></label>
+  <label>نقش
+    <select name="role">{% for r in roles %}<option value="{{ r }}">{{ r }}</option>{% endfor %}</select>
+  </label>
+  <button type="submit">ایجاد</button>
+</form>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "admin/layout.html" %}
+{% block page_title %}رسانه{% endblock %}
+{% block content %}
+<p>مسیر فعلی: <code>/{{ path }}</code></p>
+<ul class="media-list">
+  {% if path %}
+    <li><a href="/admin/media?path={{ (path ~ '/..')|replace('\\\\','/') }}">⬆ والد</a></li>
+  {% endif %}
+  {% for d in dirs %}<li>📁 <a href="/admin/media?path={{ d.rel }}">{{ d.name }}</a></li>{% endfor %}
+  {% for f in files %}<li>📄 <a href="/media/{{ f.rel }}" target="_blank">{{ f.name }}</a></li>{% endfor %}
+</ul>
+{% endblock %}

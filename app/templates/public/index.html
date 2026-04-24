@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}سلامتیان — خودروهای کارکرده{% endblock %}
+{% block body %}
+<header class="public-header">
+  <div class="brand">سلامتیان</div>
+  <nav>
+    <a href="#cars">خودروها</a>
+    <a href="#consult">مشاوره</a>
+    <a href="#sell">فروش خودرو</a>
+  </nav>
+</header>
+
+<main class="public-main" x-data="carsApp()" x-init="fetchCars()">
+  <section class="filters">
+    <input x-model="filters.brand" @input.debounce.300ms="fetchCars()" placeholder="برند">
+    <input x-model="filters.model" @input.debounce.300ms="fetchCars()" placeholder="مدل">
+    <input type="number" x-model="filters.year_min" @change="fetchCars()" placeholder="از سال">
+    <input type="number" x-model="filters.year_max" @change="fetchCars()" placeholder="تا سال">
+  </section>
+  <section id="cars" class="cars-grid">
+    <template x-for="c in items" :key="c.id">
+      <article class="car-card" @click="openCar(c.id)">
+        <img :src="c.images_json && c.images_json.length ? '/media/cars/' + c.images_json[0].path : '/static/img/placeholder.png'" alt="">
+        <h3 x-text="c.brand + ' ' + c.model + ' ' + c.year"></h3>
+        <p x-text="Number(c.price).toLocaleString() + ' تومان'"></p>
+        <small x-text="c.location || ''"></small>
+      </article>
+    </template>
+  </section>
+  <div class="pagination">
+    <button @click="prev()" :disabled="offset === 0">قبلی</button>
+    <span x-text="offset + '–' + Math.min(offset+limit, total) + ' از ' + total"></span>
+    <button @click="next()" :disabled="offset+limit >= total">بعدی</button>
+  </div>
+
+  <section id="consult" class="form-card">
+    <h2>درخواست مشاوره</h2>
+    <form @submit.prevent="submitConsultation($event)">
+      <input name="name" placeholder="نام" required>
+      <input name="phone" placeholder="تلفن" required>
+      <textarea name="description" placeholder="توضیحات"></textarea>
+      <button>ارسال</button>
+    </form>
+  </section>
+
+  <section id="sell" class="form-card">
+    <h2>فروش خودرو</h2>
+    <form @submit.prevent="submitSell($event)" enctype="multipart/form-data">
+      <input name="name" placeholder="نام" required>
+      <input name="phone" placeholder="تلفن" required>
+      <input name="car_brand" placeholder="برند">
+      <input name="car_model" placeholder="مدل">
+      <input type="number" name="year" placeholder="سال">
+      <input type="number" name="mileage" placeholder="کارکرد">
+      <textarea name="description" placeholder="توضیحات"></textarea>
+      <input type="file" name="images" multiple accept="image/*">
+      <button>ارسال</button>
+    </form>
+  </section>
+</main>
+
+<div x-data="{ open:false, html:'' }" x-show="open" @keydown.escape.window="open=false" class="modal" x-cloak
+     @open-car.window="open=true; fetch('/car/'+$event.detail).then(r=>r.text()).then(t=>html=t)">
+  <div class="modal-body" @click.outside="open=false" x-html="html"></div>
+</div>
+
+<script>
+function carsApp() {
+  return {
+    items: [], total: 0, limit: 12, offset: 0,
+    filters: { brand: '', model: '', year_min: '', year_max: '' },
+    qs() {
+      const p = new URLSearchParams({ limit: this.limit, offset: this.offset });
+      for (const [k,v] of Object.entries(this.filters)) if (v) p.set(k, v);
+      return p.toString();
+    },
+    async fetchCars() {
+      const r = await fetch('/api/cars?' + this.qs());
+      const j = await r.json();
+      this.items = j.items; this.total = j.total;
+    },
+    next() { this.offset += this.limit; this.fetchCars(); },
+    prev() { this.offset = Math.max(0, this.offset - this.limit); this.fetchCars(); },
+    openCar(id) { window.dispatchEvent(new CustomEvent('open-car', { detail: id })); },
+    async submitConsultation(ev) {
+      const f = new FormData(ev.target);
+      const r = await fetch('/api/leads/consultation', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(Object.fromEntries(f)),
+      });
+      if (r.ok) { alert('ارسال شد'); ev.target.reset(); } else alert('خطا');
+    },
+    async submitSell(ev) {
+      const r = await fetch('/api/leads/sell', { method: 'POST', body: new FormData(ev.target) });
+      if (r.ok) { alert('ارسال شد'); ev.target.reset(); } else alert('خطا');
+    },
+  }
+}
+</script>
+{% endblock %}

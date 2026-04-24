@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}سلامتیان{% endblock %}</title>
+  <meta name="description" content="{% block description %}خرید و فروش خودروهای کارکرده{% endblock %}">
+  <link rel="stylesheet" href="/static/css/admin.css">
+  {% block head %}{% endblock %}
+</head>
+<body>
+  {% block body %}{% endblock %}
+  <script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
+  <script src="https://unpkg.com/alpinejs@3.13.5/dist/cdn.min.js" defer></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

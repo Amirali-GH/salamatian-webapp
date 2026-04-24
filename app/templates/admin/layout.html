@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}پنل مدیریت سلامتیان{% endblock %}
+{% block body %}
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <div class="admin-brand">سلامتیان</div>
+    <nav>
+      <a href="/admin/" class="nav-link">داشبورد</a>
+      <a href="/admin/cars" class="nav-link">خودروها</a>
+      <a href="/admin/excel" class="nav-link">همگام‌سازی اکسل</a>
+      <a href="/admin/leads" class="nav-link">سرنخ‌ها</a>
+      <a href="/admin/media" class="nav-link">رسانه</a>
+      <a href="/admin/logs" class="nav-link">گزارش‌ها</a>
+      {% if user and user.role.value == 'admin' %}
+      <a href="/admin/settings" class="nav-link">تنظیمات</a>
+      {% endif %}
+    </nav>
+    <div class="admin-user">
+      {% if user %}
+        <span>{{ user.username }}</span>
+        <span class="role role-{{ user.role.value }}">{{ user.role.value }}</span>
+        <a href="/admin/logout" class="logout">خروج</a>
+      {% endif %}
+    </div>
+  </aside>
+  <main class="admin-main">
+    <header class="admin-header">
+      <h1>{% block page_title %}{% endblock %}</h1>
+      <div class="admin-header-extras">
+        {% block header_extras %}{% endblock %}
+      </div>
+    </header>
+    <section class="admin-content">
+      {% block content %}{% endblock %}
+    </section>
+  </main>
+</div>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "admin/layout.html" %}
+{% block page_title %}سرنخ‌ها{% endblock %}
+{% block content %}
+<form method="get" class="filters">
+  <select name="type">
+    <option value="">همه انواع</option>
+    {% for t in types %}<option value="{{ t }}">{{ t }}</option>{% endfor %}
+  </select>
+  <select name="status_">
+    <option value="">همه وضعیت‌ها</option>
+    {% for s in statuses %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
+  </select>
+  <button>فیلتر</button>
+</form>
+<table class="table">
+  <thead><tr><th>#</th><th>نوع</th><th>نام</th><th>تلفن</th><th>خودرو</th><th>وضعیت</th><th>یادداشت</th><th>زمان</th><th></th></tr></thead>
+  <tbody>
+  {% for l in leads %}
+    <tr>
+      <td>{{ l.id }}</td>
+      <td>{{ l.type.value }}</td>
+      <td>{{ l.name }}</td>
+      <td>{{ l.phone }}</td>
+      <td>{{ l.car_brand or '' }} {{ l.car_model or '' }} {{ l.year or '' }}</td>
+      <td><span class="badge badge-{{ l.status.value }}">{{ l.status.value }}</span></td>
+      <td>
+        <form method="post" action="/admin/leads/{{ l.id }}/update">
+          <select name="status_">
+            {% for s in statuses %}<option value="{{ s }}" {% if l.status.value == s %}selected{% endif %}>{{ s }}</option>{% endfor %}
+          </select>
+          <input name="operator_note" value="{{ l.operator_note or '' }}" placeholder="یادداشت">
+          <button>ذخیره</button>
+        </form>
+      </td>
+      <td>{{ l.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+      <td>
+        {% if l.images_json %}
+          <small>{{ l.images_json|length }} تصویر</small>
+        {% endif %}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+<p>مجموع: {{ total }}</p>
+{% endblock %}

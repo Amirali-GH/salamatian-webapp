@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="error-shell">
+  <h1>خطا {{ status_code }}</h1>
+  <p>{{ message }}</p>
+  {% if request_id %}<small>شناسه درخواست: {{ request_id }}</small>{% endif %}
+  <p><a href="/admin/">بازگشت به داشبورد</a></p>
+</div>
+{% endblock %}

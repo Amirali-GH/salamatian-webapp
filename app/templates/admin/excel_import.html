@@ -1,0 +1,30 @@
+{% extends "admin/layout.html" %}
+{% block page_title %}همگام‌سازی اکسل{% endblock %}
+{% block content %}
+{% if error %}<div class="error">{{ error }}</div>{% endif %}
+<form method="post" action="/admin/excel/upload" enctype="multipart/form-data" class="card">
+  <h2>بارگذاری فایل جدید</h2>
+  <p>پس از بارگذاری، پیش‌نمایش تغییرات نمایش داده می‌شود. هیچ تغییری تا تایید شما اعمال نخواهد شد.</p>
+  <input type="file" name="file" accept=".xlsx" required>
+  <button type="submit" class="btn btn-primary">بارگذاری</button>
+</form>
+
+<h2>تاریخچه</h2>
+<table class="table">
+  <thead><tr><th>#</th><th>فایل</th><th>ردیف‌ها</th><th>افزوده</th><th>بروزرسانی</th><th>آرشیو</th><th>هشدار</th><th>تاریخ</th></tr></thead>
+  <tbody>
+  {% for l in logs %}
+    <tr>
+      <td>{{ l.id }}</td>
+      <td>{{ l.file_path.split('/')[-1] }}</td>
+      <td>{{ l.imported_rows }}</td>
+      <td>{{ l.added_rows }}</td>
+      <td>{{ l.updated_rows }}</td>
+      <td>{{ l.removed_rows }}</td>
+      <td>{{ (l.warnings or [])|length }}</td>
+      <td>{{ l.applied_at.strftime('%Y-%m-%d %H:%M') if l.applied_at else '—' }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

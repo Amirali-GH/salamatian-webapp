@@ -1,0 +1,54 @@
+{% extends "admin/layout.html" %}
+{% block page_title %}{{ 'ویرایش خودرو' if car else 'خودروی جدید' }}{% endblock %}
+{% block content %}
+<form method="post" action="{{ '/admin/cars/' ~ car.id ~ '/edit' if car else '/admin/cars/new' }}" class="form-grid">
+  <label>برند<input name="brand" required value="{{ car.brand if car }}"></label>
+  <label>مدل<input name="model" required value="{{ car.model if car }}"></label>
+  <label>سال<input type="number" name="year" required value="{{ car.year if car }}"></label>
+  <label>قیمت (تومان)<input name="price" required value="{{ car.price if car }}"></label>
+  <label>کارکرد<input type="number" name="mileage" value="{{ car.mileage if car else '' }}"></label>
+  <label>گیربکس
+    <select name="gearbox">
+      <option value="">—</option>
+      {% for g in ['manual','automatic','cvt','dct'] %}
+      <option value="{{ g }}" {% if car and car.gearbox and car.gearbox.value == g %}selected{% endif %}>{{ g }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>سوخت
+    <select name="fuel_type">
+      <option value="">—</option>
+      {% for f in ['gasoline','diesel','hybrid','electric','lpg','cng'] %}
+      <option value="{{ f }}" {% if car and car.fuel_type and car.fuel_type.value == f %}selected{% endif %}>{{ f }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>رنگ<input name="color" value="{{ car.color if car and car.color else '' }}"></label>
+  <label>موقعیت<input name="location" value="{{ car.location if car and car.location else '' }}"></label>
+  <label>وضعیت
+    <select name="car_status">
+      {% for s in ['draft','pending','published','archived'] %}
+      <option value="{{ s }}" {% if car and car.status.value == s %}selected{% endif %}>{{ s }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label class="full">توضیحات<textarea name="description" rows="4">{{ car.description if car and car.description else '' }}</textarea></label>
+  <button type="submit" class="btn btn-primary">ذخیره</button>
+</form>
+
+{% if car %}
+<h2>تصاویر</h2>
+<form method="post" action="/admin/cars/{{ car.id }}/images" enctype="multipart/form-data">
+  <input type="file" name="images" multiple accept="image/*">
+  <button>بارگذاری</button>
+</form>
+<div class="image-grid">
+{% for img in images %}
+  <div class="image-card">
+    <img src="/media/cars/{{ img.image_path }}" alt="">
+    <span>#{{ img.sort_order }}</span>
+  </div>
+{% endfor %}
+</div>
+{% endif %}
+{% endblock %}

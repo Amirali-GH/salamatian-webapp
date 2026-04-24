@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}ورود به پنل{% endblock %}
+{% block body %}
+<div class="login-shell">
+  <form method="post" action="/admin/login" class="login-card">
+    <h1>ورود مدیر</h1>
+    {% if error %}<div class="error">{{ error }}</div>{% endif %}
+    <label>نام کاربری<input name="username" required autofocus></label>
+    <label>رمز عبور<input name="password" type="password" required></label>
+    <button type="submit">ورود</button>
+  </form>
+</div>
+{% endblock %}

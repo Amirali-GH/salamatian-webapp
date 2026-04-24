@@ -1,0 +1,53 @@
+{% extends "admin/layout.html" %}
+{% block page_title %}گزارش‌ها{% endblock %}
+{% block content %}
+<div class="tabs">
+  <a href="?tab=audit" class="{% if tab == 'audit' %}active{% endif %}">سابقه تغییرات</a>
+  <a href="?tab=excel" class="{% if tab == 'excel' %}active{% endif %}">اکسل</a>
+</div>
+
+{% if tab == 'audit' %}
+<form method="get" class="filters">
+  <input type="hidden" name="tab" value="audit">
+  <input name="entity_type" placeholder="نوع" value="{{ entity_type or '' }}">
+  <input name="entity_id" placeholder="شناسه" value="{{ entity_id or '' }}">
+  <button>فیلتر</button>
+</form>
+<table class="table">
+  <thead><tr><th>#</th><th>زمان</th><th>عمل</th><th>موجودیت</th><th>شناسه</th><th>کاربر</th><th>قبل</th><th>بعد</th></tr></thead>
+  <tbody>
+  {% for a in audit %}
+    <tr>
+      <td>{{ a.id }}</td>
+      <td>{{ a.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+      <td><span class="badge badge-{{ a.action.value }}">{{ a.action.value }}</span></td>
+      <td>{{ a.entity_type }}</td>
+      <td>{{ a.entity_id or '—' }}</td>
+      <td>{{ a.user_id or 'سیستم' }}</td>
+      <td><code>{{ a.old_value or '' }}</code></td>
+      <td><code>{{ a.new_value or '' }}</code></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<table class="table">
+  <thead><tr><th>#</th><th>فایل</th><th>ردیف‌ها</th><th>افزوده</th><th>تغییر</th><th>آرشیو</th><th>هشدار</th><th>کاربر</th><th>زمان اعمال</th></tr></thead>
+  <tbody>
+  {% for l in excel_logs %}
+    <tr>
+      <td>{{ l.id }}</td>
+      <td>{{ l.file_path.split('/')[-1] }}</td>
+      <td>{{ l.imported_rows }}</td>
+      <td>{{ l.added_rows }}</td>
+      <td>{{ l.updated_rows }}</td>
+      <td>{{ l.removed_rows }}</td>
+      <td>{{ (l.warnings or [])|length }}</td>
+      <td>{{ l.applied_by_user_id or '—' }}</td>
+      <td>{{ l.applied_at.strftime('%Y-%m-%d %H:%M') if l.applied_at else '—' }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+{% endblock %}
