@@ -1,0 +1,65 @@
+{% extends "admin/layout.html" %}
+{% block page_title %}پیش‌نمایش تغییرات اکسل{% endblock %}
+{% block content %}
+<p>فایل: <code>{{ file_path }}</code></p>
+<div class="kpi-grid">
+  <div class="kpi"><h2>{{ diff.new_cars|length }}</h2><p>جدید</p></div>
+  <div class="kpi"><h2>{{ diff.updated_cars|length }}</h2><p>تغییر یافته</p></div>
+  <div class="kpi"><h2>{{ diff.removed_cars|length }}</h2><p>برای آرشیو</p></div>
+  <div class="kpi"><h2>{{ diff.unchanged }}</h2><p>بدون تغییر</p></div>
+  <div class="kpi"><h2>{{ diff.warnings|length }}</h2><p>هشدار</p></div>
+</div>
+
+<form method="post" action="/admin/excel/apply/{{ token }}" class="apply-bar">
+  <button type="submit" class="btn btn-primary">اعمال تغییرات</button>
+  <a href="/admin/excel" class="btn">انصراف</a>
+</form>
+
+{% if diff.warnings %}
+<h3 class="warn">هشدارها</h3>
+<table class="table">
+  <thead><tr><th>ردیف</th><th>مشکل</th></tr></thead>
+  <tbody>
+  {% for w in diff.warnings %}<tr><td>{{ w.row }}</td><td>{{ w.issue }}</td></tr>{% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+<h3 class="new">خودروهای جدید</h3>
+<table class="table">
+  <thead><tr><th>ردیف</th><th>برند</th><th>مدل</th><th>سال</th><th>قیمت</th></tr></thead>
+  <tbody>
+  {% for c in diff.new_cars %}
+    <tr><td>{{ c.row_number }}</td><td>{{ c.brand }}</td><td>{{ c.model }}</td><td>{{ c.year }}</td><td>{{ c.price }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+<h3 class="updated">تغییر یافته</h3>
+<table class="table">
+  <thead><tr><th>شناسه</th><th>عنوان</th><th>تغییرات</th></tr></thead>
+  <tbody>
+  {% for c in diff.updated_cars %}
+    <tr>
+      <td>{{ c.car_id }}</td>
+      <td>{{ c.brand }} {{ c.model }} {{ c.year }}</td>
+      <td>
+        {% for field, vals in c.changes.items() %}
+          <div><b>{{ field }}</b>: {{ vals.old }} → {{ vals.new }}</div>
+        {% endfor %}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+<h3 class="removed">آرشیو می‌شوند</h3>
+<table class="table">
+  <thead><tr><th>شناسه</th><th>عنوان</th><th>قیمت</th></tr></thead>
+  <tbody>
+  {% for c in diff.removed_cars %}
+    <tr><td>{{ c.car_id }}</td><td>{{ c.brand }} {{ c.model }} {{ c.year }}</td><td>{{ c.price }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

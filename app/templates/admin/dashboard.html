@@ -1,0 +1,27 @@
+{% extends "admin/layout.html" %}
+{% block page_title %}داشبورد{% endblock %}
+{% block content %}
+<div class="kpi-grid">
+  <div class="kpi"><h2>{{ total_cars }}</h2><p>کل خودروها</p></div>
+  <div class="kpi"><h2>{{ pending_cars }}</h2><p>در انتظار بررسی</p></div>
+  <div class="kpi"><h2>{{ published_cars }}</h2><p>منتشر شده</p></div>
+  <div class="kpi"><h2>{{ new_leads }}</h2><p>سرنخ‌های جدید</p></div>
+</div>
+<h2>فعالیت‌های اخیر</h2>
+<table class="table">
+  <thead>
+    <tr><th>زمان</th><th>عمل</th><th>موجودیت</th><th>شناسه</th><th>کاربر</th></tr>
+  </thead>
+  <tbody>
+    {% for a in recent_activity %}
+    <tr>
+      <td>{{ a.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+      <td>{{ a.action.value }}</td>
+      <td>{{ a.entity_type }}</td>
+      <td>{{ a.entity_id or '—' }}</td>
+      <td>{{ a.user_id or 'سیستم' }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

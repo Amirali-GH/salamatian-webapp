@@ -1,0 +1,50 @@
+{% extends "admin/layout.html" %}
+{% block page_title %}خودروها{% endblock %}
+{% block header_extras %}<a href="/admin/cars/new" class="btn btn-primary">افزودن خودرو</a>{% endblock %}
+{% block content %}
+<form method="get" class="filters">
+  <input name="brand" placeholder="برند" value="{{ filters.brand or '' }}">
+  <input name="model" placeholder="مدل" value="{{ filters.model or '' }}">
+  <input name="location" placeholder="موقعیت" value="{{ filters.location or '' }}">
+  <select name="car_status">
+    <option value="">همه وضعیت‌ها</option>
+    {% for s in statuses %}<option value="{{ s }}" {% if filters.status and filters.status.value == s %}selected{% endif %}>{{ s }}</option>{% endfor %}
+  </select>
+  <button type="submit">فیلتر</button>
+</form>
+<table class="table">
+  <thead>
+    <tr><th>#</th><th>برند</th><th>مدل</th><th>سال</th><th>قیمت</th><th>کارکرد</th><th>وضعیت</th><th>منبع</th><th>عملیات</th></tr>
+  </thead>
+  <tbody>
+  {% for c in items %}
+    <tr>
+      <td>{{ c.id }}</td>
+      <td>{{ c.brand }}</td>
+      <td>{{ c.model }}</td>
+      <td>{{ c.year }}</td>
+      <td>{{ '{:,.0f}'.format(c.price) }}</td>
+      <td>{{ c.mileage or '—' }}</td>
+      <td><span class="badge badge-{{ c.status.value }}">{{ c.status.value }}</span></td>
+      <td>{{ c.source.value }}</td>
+      <td>
+        <a href="/admin/cars/{{ c.id }}/edit">ویرایش</a>
+        {% if c.status.value != 'published' %}
+        <form method="post" action="/admin/cars/{{ c.id }}/publish" style="display:inline">
+          <button>انتشار</button>
+        </form>
+        {% endif %}
+        {% if c.status.value != 'archived' %}
+        <form method="post" action="/admin/cars/{{ c.id }}/archive" style="display:inline">
+          <button>آرشیو</button>
+        </form>
+        {% endif %}
+      </td>
+    </tr>
+  {% else %}
+    <tr><td colspan="9">موردی یافت نشد</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+<p>مجموع: {{ total }}</p>
+{% endblock %}

@@ -1,0 +1,26 @@
+<article class="car-detail">
+  <header>
+    <h2>{{ car.brand }} {{ car.model }} {{ car.year }}</h2>
+    <p class="price">{{ '{:,.0f}'.format(car.price) }} تومان</p>
+  </header>
+  <div class="gallery">
+    {% for img in images %}
+      <img src="/media/cars/{{ img.path }}" alt="">
+    {% endfor %}
+  </div>
+  <dl class="specs">
+    <dt>کارکرد</dt><dd>{{ car.mileage or '—' }}</dd>
+    <dt>گیربکس</dt><dd>{{ car.gearbox.value if car.gearbox else '—' }}</dd>
+    <dt>سوخت</dt><dd>{{ car.fuel_type.value if car.fuel_type else '—' }}</dd>
+    <dt>رنگ</dt><dd>{{ car.color or '—' }}</dd>
+    <dt>موقعیت</dt><dd>{{ car.location or '—' }}</dd>
+    <dt>وضعیت بدنه</dt><dd>{{ car.body_status or '—' }}</dd>
+  </dl>
+  {% if car.description %}<p>{{ car.description }}</p>{% endif %}
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"Vehicle",
+   "name":"{{ car.brand }} {{ car.model }}",
+   "vehicleModelDate":"{{ car.year }}",
+   "offers":{"@type":"Offer","price":"{{ car.price }}","priceCurrency":"IRR"}}
+  </script>
+</article>
