@@ -20,7 +20,7 @@
   <section id="cars" class="cars-grid">
     <template x-for="c in items" :key="c.id">
       <article class="car-card" @click="openCar(c.id)">
-        <img :src="c.images_json && c.images_json.length ? '/media/cars/' + c.images_json[0].path : '/static/img/placeholder.png'" alt="">
+        <img :src="c.images_json && c.images_json.length ? '/media/cars/' + c.images_json[0].path : 'data:image/svg+xml;utf8,&lt;svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 4 3%22&gt;&lt;rect width=%224%22 height=%223%22 fill=%22%23e3e6ef%22/&gt;&lt;/svg&gt;'" alt="">
         <h3 x-text="c.brand + ' ' + c.model + ' ' + c.year"></h3>
         <p x-text="Number(c.price).toLocaleString() + ' تومان'"></p>
         <small x-text="c.location || ''"></small>
