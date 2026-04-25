@@ -7,9 +7,9 @@ import os
 from typing import Any
 
 os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///:memory:")
-os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
-os.environ.setdefault("CELERY_BROKER_URL", "redis://localhost:6379/1")
-os.environ.setdefault("CELERY_RESULT_BACKEND", "redis://localhost:6379/2")
+os.environ.setdefault("REDIS_URL", "redis://localhost:8002/0")
+os.environ.setdefault("CELERY_BROKER_URL", "redis://localhost:8002/1")
+os.environ.setdefault("CELERY_RESULT_BACKEND", "redis://localhost:8002/2")
 
 import pytest
 import pytest_asyncio

@@ -14,11 +14,11 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "dev-secret-change-me"
     BASE_URL: str = "http://localhost:8000"
 
-    DATABASE_URL: str = "postgresql+asyncpg://salamatian:salamatian@postgres:5432/salamatian"
+    DATABASE_URL: str = "postgresql+asyncpg://salamatian:salamatian@postgres:8003/salamatian"
 
-    REDIS_URL: str = "redis://redis:6379/0"
-    CELERY_BROKER_URL: str = "redis://redis:6379/1"
-    CELERY_RESULT_BACKEND: str = "redis://redis:6379/2"
+    REDIS_URL: str = "redis://redis:8002/0"
+    CELERY_BROKER_URL: str = "redis://redis:8002/1"
+    CELERY_RESULT_BACKEND: str = "redis://redis:8002/2"
 
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60

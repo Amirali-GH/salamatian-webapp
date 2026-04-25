@@ -1,67 +1,143 @@
+###################################################################
+# First time
+#     docker compose build
+#     docker compose up -d
+#     docker compose exec web alembic upgrade head
+#     docker compose exec web python scripts/seed_admin.py
+#
+# Check status
+#     docker compose ps
+#     docker compose logs web --tail=50
+#
+# Update Next
+#     docker compose build web worker beat
+#     docker compose up -d --no-deps web worker beat
+###################################################################
+
 services:
   postgres:
     image: postgres:15-alpine
     environment:
-      POSTGRES_USER: salamatian
-      POSTGRES_PASSWORD: salamatian
-      POSTGRES_DB: salamatian
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - pg_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+    restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U salamatian"]
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
       timeout: 5s
       retries: 10
+    deploy:
+      resources:
+        limits:
+          memory: 512m
 
   redis:
     image: redis:7-alpine
+    command: redis-server --requirepass ${REDIS_PASSWORD} --maxmemory 256mb --maxmemory-policy allkeys-lru
     ports:
-      - "6379:6379"
+      - "8002:8002"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
       timeout: 5s
       retries: 10
+    deploy:
+      resources:
+        limits:
+          memory: 256m
 
   web:
-    build: .
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    command: uvicorn app.main:app --host ${HOST_IP} --port ${HOST_PORT} --workers ${WORKER_COUNT} --proxy-headers --forwarded-allow-ips='*'
     env_file: .env
     volumes:
-      - .:/app
       - storage_data:/app/storage/uploads
     ports:
-      - "8000:8000"
+      - "${HOST_PORT}:${HOST_PORT}"
+    restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${HOST_PORT}/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          memory: 512m
 
   worker:
-    build: .
-    command: celery -A app.workers.celery_app.celery_app worker --loglevel=info
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    command: celery -A app.workers.celery_app.celery_app worker --loglevel=warning --concurrency=2
     env_file: .env
     volumes:
-      - .:/app
       - storage_data:/app/storage/uploads
+    restart: unless-stopped
     depends_on:
-      - redis
-      - postgres
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 256m
 
   beat:
-    build: .
-    command: celery -A app.workers.celery_app.celery_app beat --loglevel=info
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    command: celery -A app.workers.celery_app.celery_app beat --loglevel=warning
     env_file: .env
     volumes:
-      - .:/app
       - storage_data:/app/storage/uploads
+    restart: unless-stopped
     depends_on:
-      - redis
-      - postgres
-
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 128m
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - storage_data:/app/storage/uploads:ro
+    restart: unless-stopped
+    depends_on:
+      - web
+    deploy:
+      resources:
+        limits:
+          memory: 64m
 volumes:
   pg_data:
+  redis_data:
   storage_data:
