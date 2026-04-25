@@ -185,3 +185,75 @@ in front of `web` for TLS termination in production.
 ## License
 
 Proprietary — see `LICENSE`.
+
+
+## 🚀 Deployment
+
+This project uses Docker Compose with Nginx as a reverse proxy, serving the application over HTTPS.
+
+### Prerequisites
+
+- Docker & Docker Compose installed
+- A registered domain pointing to your server
+- SSL certificate files (`fullchain.pem` and `privkey.pem`)
+
+### SSL Certificate Setup
+
+Before starting the stack, you need valid SSL certificates.
+
+**Using Let's Encrypt (recommended for production):**
+
+```bash
+apt install certbot
+certbot certonly --standalone -d yourdomain.com -d www.yourdomain.com
+
+mkdir -p ./nginx/ssl
+cp /etc/letsencrypt/live/yourdomain.com/fullchain.pem ./nginx/ssl/
+cp /etc/letsencrypt/live/yourdomain.com/privkey.pem   ./nginx/ssl/
+```
+
+**Using a self-signed certificate (for local/testing only):**
+
+```bash
+mkdir -p ./nginx/ssl
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+  -keyout ./nginx/ssl/privkey.pem \
+  -out    ./nginx/ssl/fullchain.pem \
+  -subj "/CN=yourdomain.com"
+```
+
+### First-Time Setup
+
+```bash
+docker compose build
+docker compose up -d
+docker compose exec web alembic upgrade head
+docker compose exec web python scripts/seed_admin.py
+```
+
+### Updating the Application
+
+```bash
+docker compose build web worker beat
+docker compose up -d --no-deps web worker beat
+```
+
+### Useful Commands
+
+```bash
+docker compose ps                        # Check running services
+docker compose logs web --tail=50        # View application logs
+docker compose logs nginx --tail=50      # View nginx logs
+```
+
+### Certificate Renewal
+
+Let's Encrypt certificates expire every 90 days. To renew:
+
+```bash
+docker compose stop nginx
+certbot renew
+cp /etc/letsencrypt/live/yourdomain.com/fullchain.pem ./nginx/ssl/
+cp /etc/letsencrypt/live/yourdomain.com/privkey.pem   ./nginx/ssl/
+docker compose start nginx
+```
