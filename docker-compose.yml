@@ -105,11 +105,11 @@ services:
       context: .
       dockerfile: Dockerfile
       target: production
-    command: celery -A app.workers.celery_app.celery_app beat --loglevel=warning --schedule=/tmp/celery/celerybeat-schedule
-    env_file: .env
+    command: celery -A app.workers.celery_app.celery_app beat --loglevel=warning --schedule=/app/celerybeat/celerybeat-schedule
     volumes:
       - storage_data:/app/storage/uploads
-      - beat_data:/tmp/celery
+      - celerybeat_data:/app/celerybeat
+    env_file: .env
     restart: unless-stopped
     depends_on:
       postgres:
@@ -140,4 +140,4 @@ volumes:
   pg_data:
   redis_data:
   storage_data:
-  beat_data:  
+  celerybeat_data:
