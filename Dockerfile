@@ -35,21 +35,18 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
         libpq5 \
         curl \
-    && rm -rf /var/lib/apt/lists/* \
-    && groupadd -r appuser \
-    && useradd -r -g appuser -d /app -s /usr/sbin/nologin appuser
+    && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /install /usr/local
 
-COPY --chown=appuser:appuser app/ ./app/
-COPY --chown=appuser:appuser alembic/ ./alembic/
-COPY --chown=appuser:appuser alembic.ini ./
-COPY --chown=appuser:appuser scripts/ ./scripts/
+COPY app/ ./app/
+COPY alembic/ ./alembic/
+COPY alembic.ini ./
+COPY scripts/ ./scripts/
 
 RUN mkdir -p \
         /app/storage/uploads/cars \
         /app/storage/uploads/leads \
         /app/storage/uploads/excel/inbox \
-    && chown -R appuser:appuser /app/storage
-
-USER appuser
+        /app/celerybeat \
+    && chmod -R 777 /app/celerybeat /app/storage

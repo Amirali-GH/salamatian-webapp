@@ -60,6 +60,7 @@ services:
       dockerfile: Dockerfile
       target: production
     command: uvicorn app.main:app --host ${HOST_IP} --port ${HOST_PORT} --workers ${WORKER_COUNT} --proxy-headers --forwarded-allow-ips='*'
+    user: root
     env_file: .env
     volumes:
       - storage_data:/app/storage/uploads
@@ -86,6 +87,7 @@ services:
       dockerfile: Dockerfile
       target: production
     command: celery -A app.workers.celery_app.celery_app worker --loglevel=warning --concurrency=2
+    user: root
     env_file: .env
     volumes:
       - storage_data:/app/storage/uploads
@@ -105,10 +107,10 @@ services:
       context: .
       dockerfile: Dockerfile
       target: production
-    command: celery -A app.workers.celery_app.celery_app beat --loglevel=warning --schedule=/app/celerybeat/celerybeat-schedule
+    command: sh -c "rm -f /tmp/celerybeat-schedule* && exec celery -A app.workers.celery_app.celery_app beat --loglevel=warning --schedule=/tmp/celerybeat-schedule"
+    user: root
     volumes:
       - storage_data:/app/storage/uploads
-      - celerybeat_data:/app/celerybeat
     env_file: .env
     restart: unless-stopped
     depends_on:
@@ -140,4 +142,3 @@ volumes:
   pg_data:
   redis_data:
   storage_data:
-  celerybeat_data:
