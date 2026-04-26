@@ -133,13 +133,18 @@ async def edit_car_form(
         raise HTTPException(status_code=404)
     templates = request.app.state.templates
     await car.awaitable_attrs.images  # ensure loaded
+    images_data = [
+        {"id": img.id, "image_path": img.image_path, "sort_order": img.sort_order}
+        for img in sorted(car.images, key=lambda i: i.sort_order)
+    ]
     return templates.TemplateResponse(
         request,
         "admin/car_form.html",
         {
             "user": user_or_redirect,
             "car": car,
-            "images": car.images,
+            "images": images_data,
+            "images_json": images_data,
         },
     )
 
@@ -246,16 +251,18 @@ async def upload_car_image(
         raise HTTPException(status_code=404)
     base_order = (car.images_json or [])
     start = len(base_order)
+    created_ids: list[int] = []
     for i, upload in enumerate(images):
         rel = await media.save_car_image(upload, car_id)
-        db.add(CarImage(car_id=car_id, image_path=rel, sort_order=start + i))
-    await db.flush()
+        img = CarImage(car_id=car_id, image_path=rel, sort_order=start + i)
+        db.add(img)
+        await db.flush()
+        created_ids.append(img.id)
     await car_service.refresh_images_cache(db, car)
-    # Enqueue optimization
+    await db.commit()
     from app.workers.tasks import image_optimize_task
 
-    for img in car.images:
-        image_optimize_task.delay(img.id)
-    await db.commit()
+    for img_id in created_ids:
+        image_optimize_task.delay(img_id)
     await invalidate_cars_cache()
     return RedirectResponse(url=f"/admin/cars/{car_id}/edit", status_code=303)

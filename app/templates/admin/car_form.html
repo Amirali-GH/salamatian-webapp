@@ -33,22 +33,167 @@
     </select>
   </label>
   <label class="full">توضیحات<textarea name="description" rows="4">{{ car.description if car and car.description else '' }}</textarea></label>
-  <button type="submit" class="btn btn-primary">ذخیره</button>
+  <button type="submit" class="btn btn-primary">ذخیره مشخصات</button>
 </form>
 
+{% if not car %}
+<p style="margin-top:16px;color:#888">برای افزودن تصویر، ابتدا اطلاعات خودرو را ذخیره کنید.</p>
+{% endif %}
+
 {% if car %}
-<h2>تصاویر</h2>
-<form method="post" action="/admin/cars/{{ car.id }}/images" enctype="multipart/form-data">
-  <input type="file" name="images" multiple accept="image/*">
-  <button>بارگذاری</button>
-</form>
-<div class="image-grid">
-{% for img in images %}
-  <div class="image-card">
-    <img src="/media/cars/{{ img.image_path }}" alt="">
-    <span>#{{ img.sort_order }}</span>
-  </div>
-{% endfor %}
+<h2 style="margin-top:32px">گالری تصاویر</h2>
+<p style="color:#666;margin:0 0 12px">تصاویر را انتخاب کنید، در زیر پیش‌نمایش می‌بینید، می‌توانید حذف کنید و در نهایت با «ذخیره گالری» آپلود نمایید.</p>
+
+<div id="upload-zone" style="border:2px dashed #aaa;border-radius:8px;padding:20px;text-align:center;cursor:pointer;background:#fafafa">
+  <p style="margin:0 0 6px;font-weight:600">📷 انتخاب تصاویر</p>
+  <p style="margin:0;font-size:12px;color:#888">کلیک کنید یا فایل‌ها را اینجا رها کنید — می‌توانید چند تصویر را همزمان انتخاب کنید</p>
+  <input id="image-input" type="file" multiple accept="image/*" style="display:none">
 </div>
+
+<div id="upload-status" style="margin-top:12px;min-height:20px"></div>
+
+<div id="gallery-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-top:16px"></div>
+
+<div style="margin-top:18px;display:flex;gap:10px;align-items:center">
+  <button type="button" id="btn-save-gallery" class="btn btn-primary" style="background:#28a745;color:#fff;border:none;border-radius:6px;padding:10px 20px;cursor:pointer;font-size:14px">ذخیره گالری</button>
+  <span id="pending-count" style="color:#666;font-size:13px"></span>
+</div>
+
+<script id="existing-images-data" type="application/json">{{ images_json | tojson }}</script>
+
+<script>
+(function() {
+  const carId = {{ car.id }};
+  const existing = JSON.parse(document.getElementById('existing-images-data').textContent);
+  const zone = document.getElementById('upload-zone');
+  const input = document.getElementById('image-input');
+  const status = document.getElementById('upload-status');
+  const grid = document.getElementById('gallery-grid');
+  const btnSave = document.getElementById('btn-save-gallery');
+  const pendingCount = document.getElementById('pending-count');
+
+  // Each item: { kind: 'saved'|'pending', id?, path?, file?, url, sortOrder }
+  let items = existing.map((img, i) => ({
+    kind: 'saved',
+    id: img.id,
+    path: img.image_path,
+    url: '/media/cars/' + img.image_path,
+    sortOrder: img.sort_order ?? i,
+  }));
+
+  function render() {
+    grid.innerHTML = items.map((it, idx) => `
+      <div class="image-card" data-idx="${idx}" style="position:relative;border:1px solid ${it.kind==='pending'?'#28a745':'#ddd'};border-radius:8px;overflow:hidden;background:#fff">
+        <img src="${it.url}" alt="" style="width:100%;height:140px;object-fit:cover;display:block">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 8px;background:#f5f5f5;font-size:12px">
+          <span style="color:${it.kind==='pending'?'#28a745':'#333'}">${it.kind==='pending'?'⏳ جدید':'✓ ذخیره‌شده'} #${idx+1}</span>
+          <button type="button" class="btn-remove" data-idx="${idx}" style="background:#dc3545;color:#fff;border:none;border-radius:4px;padding:4px 10px;cursor:pointer;font-size:11px">حذف</button>
+        </div>
+      </div>
+    `).join('');
+    const pending = items.filter(it => it.kind === 'pending').length;
+    pendingCount.textContent = pending ? `${pending} تصویر جدید آمادهٔ ذخیره است` : 'تغییری در انتظار نیست';
+    btnSave.disabled = false;
+    btnSave.style.opacity = '1';
+  }
+
+  function addFiles(files) {
+    for (const f of files) {
+      if (!f.type.startsWith('image/')) continue;
+      items.push({
+        kind: 'pending',
+        file: f,
+        url: URL.createObjectURL(f),
+        sortOrder: items.length,
+      });
+    }
+    render();
+  }
+
+  zone.addEventListener('click', () => input.click());
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.background = '#eef'; });
+  zone.addEventListener('dragleave', () => { zone.style.background = '#fafafa'; });
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.style.background = '#fafafa';
+    if (e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
+  });
+  input.addEventListener('change', () => {
+    if (input.files.length) addFiles(input.files);
+    input.value = '';
+  });
+
+  grid.addEventListener('click', e => {
+    const btn = e.target.closest('.btn-remove');
+    if (!btn) return;
+    const idx = parseInt(btn.dataset.idx, 10);
+    const it = items[idx];
+    if (it.kind === 'pending') {
+      URL.revokeObjectURL(it.url);
+      items.splice(idx, 1);
+      render();
+    } else {
+      if (!confirm('این تصویرِ ذخیره‌شده هنگام «ذخیره گالری» حذف خواهد شد. تأیید می‌کنید؟')) return;
+      it.kind = 'deleted';
+      items.splice(idx, 1);
+      // Track deleted IDs separately
+      deletedIds.push(it.id);
+      render();
+    }
+  });
+
+  const deletedIds = [];
+
+  btnSave.addEventListener('click', async () => {
+    btnSave.disabled = true;
+    btnSave.style.opacity = '0.6';
+    status.style.color = '#555';
+    let ok = 0, fail = 0;
+
+    // 1) Delete removed saved images
+    for (const id of deletedIds.splice(0)) {
+      status.textContent = 'در حال حذف تصاویر...';
+      try {
+        const res = await fetch('/api/admin/cars/images/' + id, { method: 'DELETE', credentials: 'include' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        ok++;
+      } catch (e) { console.error(e); fail++; }
+    }
+
+    // 2) Upload pending images
+    const pending = items.filter(it => it.kind === 'pending');
+    if (pending.length) {
+      status.textContent = `در حال بارگذاری ${pending.length} تصویر...`;
+      const fd = new FormData();
+      pending.forEach(it => fd.append('images', it.file));
+      try {
+        const res = await fetch('/admin/cars/' + carId + '/images', { method: 'POST', body: fd, redirect: 'manual', credentials: 'include' });
+        if (res.type === 'opaqueredirect' || res.ok || res.status === 303 || res.status === 0) {
+          ok += pending.length;
+        } else {
+          throw new Error('HTTP ' + res.status);
+        }
+      } catch (e) { console.error(e); fail += pending.length; }
+    }
+
+    if (fail) {
+      status.textContent = `✗ ${fail} مورد ناموفق، ${ok} موفق`;
+      status.style.color = '#dc3545';
+      btnSave.disabled = false;
+      btnSave.style.opacity = '1';
+    } else if (ok) {
+      status.textContent = `✓ تغییرات با موفقیت ذخیره شد`;
+      status.style.color = '#28a745';
+      setTimeout(() => location.reload(), 700);
+    } else {
+      status.textContent = 'تغییری برای ذخیره وجود ندارد';
+      btnSave.disabled = false;
+      btnSave.style.opacity = '1';
+    }
+  });
+
+  render();
+})();
+</script>
 {% endif %}
 {% endblock %}

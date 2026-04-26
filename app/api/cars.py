@@ -20,10 +20,6 @@ from app.services import car_service, media
 public_router = APIRouter(prefix="/api/cars", tags=["public"])
 admin_router = APIRouter(prefix="/api/admin/cars", tags=["admin"])
 
-router = APIRouter()
-router.include_router(public_router)
-router.include_router(admin_router)
-
 
 @public_router.get("", response_model=CarListResponse)
 async def list_published(
@@ -238,3 +234,8 @@ async def admin_delete_image(
     await db.commit()
     await invalidate_cars_cache()
     return {"ok": True}
+
+
+router = APIRouter()
+router.include_router(public_router)
+router.include_router(admin_router)
