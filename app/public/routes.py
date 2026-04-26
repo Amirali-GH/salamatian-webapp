@@ -1,4 +1,7 @@
+from pathlib import Path
+
 from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
@@ -8,9 +11,9 @@ router = APIRouter(tags=["public"], include_in_schema=False)
 
 
 @router.get("/")
-async def home(request: Request):
-    templates = request.app.state.templates
-    return templates.TemplateResponse("public/index.html", {"request": request})
+async def home():
+    landing_path = Path(__file__).resolve().parent.parent / "static" / "index.html"
+    return FileResponse(landing_path)
 
 
 @router.get("/car/{car_id}")
@@ -24,9 +27,9 @@ async def car_detail(
         raise HTTPException(status_code=404)
     templates = request.app.state.templates
     return templates.TemplateResponse(
+        request,
         "public/car_popup.html",
         {
-            "request": request,
             "car": car,
             "images": car.images_json or [],
             "title": f"{car.brand} {car.model} {car.year}",

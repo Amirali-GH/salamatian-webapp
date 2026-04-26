@@ -15,7 +15,7 @@ router = APIRouter(prefix="/admin", tags=["admin"], include_in_schema=False)
 @router.get("/login")
 async def login_page(request: Request):
     templates = request.app.state.templates
-    return templates.TemplateResponse("admin/login.html", {"request": request, "error": None})
+    return templates.TemplateResponse(request, "admin/login.html", {"error": None})
 
 
 @router.post("/login")
@@ -29,8 +29,9 @@ async def login_submit(
     user = (await db.execute(select(User).where(User.username == username))).scalar_one_or_none()
     if not user or not user.is_active or not verify_password(password, user.password_hash):
         return templates.TemplateResponse(
+            request,
             "admin/login.html",
-            {"request": request, "error": "نام کاربری یا رمز عبور نادرست است"},
+            {"error": "نام کاربری یا رمز عبور نادرست است"},
             status_code=401,
         )
     token = create_access_token(user.id, user.role.value)
@@ -84,9 +85,9 @@ async def dashboard(
 
     templates = request.app.state.templates
     return templates.TemplateResponse(
+        request,
         "admin/dashboard.html",
         {
-            "request": request,
             "user": user,
             "total_cars": total_cars,
             "pending_cars": pending_cars,

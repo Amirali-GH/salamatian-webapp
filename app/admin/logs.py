@@ -42,9 +42,9 @@ async def logs_page(
 
     templates = request.app.state.templates
     return templates.TemplateResponse(
+        request,
         "admin/logs.html",
         {
-            "request": request,
             "user": user_or_redirect,
             "tab": tab,
             "audit": audit,

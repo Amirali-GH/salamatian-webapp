@@ -46,9 +46,9 @@ async def list_cars_page(
     items, total = await car_service.list_cars(db, filters)
     templates = request.app.state.templates
     return templates.TemplateResponse(
+        request,
         "admin/cars_list.html",
         {
-            "request": request,
             "user": user_or_redirect,
             "items": items,
             "total": total,
@@ -68,8 +68,9 @@ async def new_car_form(request: Request, user_or_redirect=Depends(admin_user_or_
         raise HTTPException(status_code=403, detail="Forbidden")
     templates = request.app.state.templates
     return templates.TemplateResponse(
+        request,
         "admin/car_form.html",
-        {"request": request, "user": user_or_redirect, "car": None, "images": []},
+        {"user": user_or_redirect, "car": None, "images": []},
     )
 
 
@@ -133,9 +134,9 @@ async def edit_car_form(
     templates = request.app.state.templates
     await car.awaitable_attrs.images  # ensure loaded
     return templates.TemplateResponse(
+        request,
         "admin/car_form.html",
         {
-            "request": request,
             "user": user_or_redirect,
             "car": car,
             "images": car.images,

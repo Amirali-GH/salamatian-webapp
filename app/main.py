@@ -134,9 +134,9 @@ def create_app() -> FastAPI:
             )
         if request.url.path.startswith("/admin"):
             return templates.TemplateResponse(
+                request,
                 "admin/error.html",
                 {
-                    "request": request,
                     "status_code": exc.status_code,
                     "message": exc.detail,
                     "request_id": getattr(request.state, "request_id", ""),
@@ -173,9 +173,9 @@ def create_app() -> FastAPI:
                 },
             )
         return templates.TemplateResponse(
+            request,
             "admin/error.html",
             {
-                "request": request,
                 "status_code": 500,
                 "message": "Internal server error",
                 "request_id": getattr(request.state, "request_id", ""),

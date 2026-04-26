@@ -24,8 +24,9 @@ async def excel_page(
     ).scalars().all()
     templates = request.app.state.templates
     return templates.TemplateResponse(
+        request,
         "admin/excel_import.html",
-        {"request": request, "user": user_or_redirect, "logs": logs, "error": None},
+        {"user": user_or_redirect, "logs": logs, "error": None},
     )
 
 
@@ -49,8 +50,9 @@ async def excel_upload(
             await db.execute(select(ExcelImportLog).order_by(ExcelImportLog.created_at.desc()).limit(20))
         ).scalars().all()
         return templates.TemplateResponse(
+            request,
             "admin/excel_import.html",
-            {"request": request, "user": user_or_redirect, "logs": logs, "error": str(exc)},
+            {"user": user_or_redirect, "logs": logs, "error": str(exc)},
             status_code=400,
         )
     return RedirectResponse(url=f"/admin/excel/preview/{token}", status_code=303)
@@ -69,9 +71,9 @@ async def excel_preview(
         raise HTTPException(status_code=404, detail="Preview expired")
     templates = request.app.state.templates
     return templates.TemplateResponse(
+        request,
         "admin/excel_preview.html",
         {
-            "request": request,
             "user": user_or_redirect,
             "token": token,
             "diff": payload["diff"],

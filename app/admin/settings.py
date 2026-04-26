@@ -24,9 +24,9 @@ async def settings_page(
     users = (await db.execute(select(User).order_by(User.id))).scalars().all()
     templates = request.app.state.templates
     return templates.TemplateResponse(
+        request,
         "admin/settings.html",
         {
-            "request": request,
             "user": user_or_redirect,
             "users": users,
             "roles": [r.value for r in UserRole],

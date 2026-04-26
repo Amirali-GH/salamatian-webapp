@@ -32,9 +32,9 @@ async def media_page(
     dirs, files = _list_dir(settings.STORAGE_ROOT, path)
     templates = request.app.state.templates
     return templates.TemplateResponse(
+        request,
         "admin/media.html",
         {
-            "request": request,
             "user": user_or_redirect,
             "path": path,
             "dirs": dirs,

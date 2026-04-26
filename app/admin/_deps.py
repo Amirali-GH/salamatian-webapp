@@ -38,9 +38,9 @@ def require_admin_role(*allowed: UserRole):
         if user_or_redirect.role not in allowed:
             templates = request.app.state.templates
             return templates.TemplateResponse(
+                request,
                 "admin/error.html",
                 {
-                    "request": request,
                     "status_code": 403,
                     "message": "شما اجازه دسترسی به این بخش را ندارید",
                     "request_id": getattr(request.state, "request_id", ""),

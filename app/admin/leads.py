@@ -32,9 +32,9 @@ async def leads_list(
     )
     templates = request.app.state.templates
     return templates.TemplateResponse(
+        request,
         "admin/leads.html",
         {
-            "request": request,
             "user": user_or_redirect,
             "leads": rows,
             "total": total,
