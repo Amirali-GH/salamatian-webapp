@@ -134,10 +134,10 @@ services:
     image: mirror-docker.runflare.com/nginx:alpine
     ports:
       - "${NGINX_PORT}:80"
-      - "443:443"
+      # - "443:443"  # uncomment بعد از نصب SSL certificate
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/ssl:/etc/nginx/ssl:ro
+      # - ./nginx/ssl:/etc/nginx/ssl:ro  # uncomment بعد از نصب SSL certificate
       - storage_data:/app/storage/uploads:ro
     restart: unless-stopped
     depends_on:
