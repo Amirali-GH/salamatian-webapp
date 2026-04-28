@@ -3,11 +3,8 @@
 #
 # تفاوت با Dockerfile اصلی:
 #   - Base image از mirror-docker.runflare.com کشیده می‌شود
+#   - apt از mirror-linux.runflare.com/debian می‌خواند
 #   - pip از mirror-pypi.runflare.com/simple نصب می‌کند
-#
-# نکته: apt دست‌نخورده می‌ماند چون رانفلر فقط Ubuntu mirror
-#        دارد و python:slim-bookworm بر پایه Debian است.
-#        deb.debian.org معمولاً از داخل ایران قابل دسترس است.
 # ============================================================
 
 # ============================================================
@@ -24,6 +21,12 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_TIMEOUT=60
 
 WORKDIR /build
+
+# تنظیم Debian mirror رانفلر (bookworm)
+RUN printf 'deb http://mirror-linux.runflare.com/debian bookworm main\n\
+deb http://mirror-linux.runflare.com/debian bookworm-updates main\n\
+deb http://mirror-linux.runflare.com/debian-security bookworm-security main\n' \
+    > /etc/apt/sources.list
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential \
@@ -46,6 +49,12 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     WEB_CONCURRENCY=2
 
 WORKDIR /app
+
+# تنظیم Debian mirror رانفلر (bookworm)
+RUN printf 'deb http://mirror-linux.runflare.com/debian bookworm main\n\
+deb http://mirror-linux.runflare.com/debian bookworm-updates main\n\
+deb http://mirror-linux.runflare.com/debian-security bookworm-security main\n' \
+    > /etc/apt/sources.list
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         libpq5 \
