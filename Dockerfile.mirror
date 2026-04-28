@@ -1,0 +1,74 @@
+# ============================================================
+# Dockerfile.mirror — نسخه Mirror برای داخل ایران (رانفلر)
+#
+# تفاوت با Dockerfile اصلی:
+#   - Base image از mirror-docker.runflare.com کشیده می‌شود
+#   - apt از mirror-linux.runflare.com/ubuntu می‌خواند
+#   - pip از mirror-pypi.runflare.com/simple نصب می‌کند
+# ============================================================
+
+# ============================================================
+# Stage 1: Builder — وابستگی‌ها را کامپایل می‌کند
+# ============================================================
+FROM mirror-docker.runflare.com/python:3.11-slim-bookworm AS builder
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_INDEX_URL=https://mirror-pypi.runflare.com/simple \
+    PIP_TRUSTED_HOST=mirror-pypi.runflare.com \
+    PIP_TIMEOUT=60
+
+WORKDIR /build
+
+# جایگزینی mirror اوبونتو (bookworm = debian, نه ubuntu — از deb.debian.org استفاده می‌کند)
+# python:slim-bookworm بر پایه Debian است نه Ubuntu
+# بنابراین sources.list آن را به mirror debian رانفلر هدایت می‌کنیم
+# (رانفلر از Docker Hub میرور می‌کند، اما apt برای debian هم پشتیبانی می‌شود)
+RUN sed -i 's|http://deb.debian.org|http://mirror-linux.runflare.com/debian|g' /etc/apt/sources.list.d/debian.sources 2>/dev/null || \
+    sed -i 's|http://deb.debian.org|http://mirror-linux.runflare.com/debian|g' /etc/apt/sources.list 2>/dev/null || true
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential \
+        libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY pyproject.toml ./
+
+RUN pip install --upgrade pip \
+    && pip install --prefix=/install .
+
+# ============================================================
+# Stage 2: Production — ایمیج نهایی سبک
+# ============================================================
+FROM mirror-docker.runflare.com/python:3.11-slim-bookworm AS production
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app \
+    WEB_CONCURRENCY=2
+
+WORKDIR /app
+
+RUN sed -i 's|http://deb.debian.org|http://mirror-linux.runflare.com/debian|g' /etc/apt/sources.list.d/debian.sources 2>/dev/null || \
+    sed -i 's|http://deb.debian.org|http://mirror-linux.runflare.com/debian|g' /etc/apt/sources.list 2>/dev/null || true
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        libpq5 \
+        curl \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /install /usr/local
+
+COPY app/ ./app/
+COPY alembic/ ./alembic/
+COPY alembic.ini ./
+COPY scripts/ ./scripts/
+
+RUN mkdir -p \
+        /app/storage/uploads/cars \
+        /app/storage/uploads/leads \
+        /app/storage/uploads/excel/inbox \
+        /app/celerybeat \
+    && chmod -R 777 /app/celerybeat /app/storage
