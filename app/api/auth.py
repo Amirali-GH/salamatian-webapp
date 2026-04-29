@@ -1,11 +1,11 @@
 from datetime import datetime, timezone
 
 import jwt
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.config import settings
+from app.core.cookies import clear_access_token_cookie, set_access_token_cookie
 from app.core.permissions import get_current_user
 from app.core.security import (
     REFRESH_TOKEN_TYPE,
@@ -22,7 +22,12 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 
 @router.post("/login", response_model=TokenPair)
-async def login(payload: LoginRequest, response: Response, db: AsyncSession = Depends(get_db)):
+async def login(
+    payload: LoginRequest,
+    request: Request,
+    response: Response,
+    db: AsyncSession = Depends(get_db),
+):
     result = await db.execute(select(User).where(User.username == payload.username))
     user = result.scalar_one_or_none()
     if not user or not user.is_active or not verify_password(payload.password, user.password_hash):
@@ -34,20 +39,17 @@ async def login(payload: LoginRequest, response: Response, db: AsyncSession = De
 
     access = create_access_token(user.id, user.role.value)
     refresh = create_refresh_token(user.id)
-    response.set_cookie(
-        "access_token",
-        access,
-        httponly=True,
-        samesite="lax",
-        secure=not settings.DEBUG,
-        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-        path="/",
-    )
+    set_access_token_cookie(response, request, access)
     return TokenPair(access_token=access, refresh_token=refresh)
 
 
 @router.post("/refresh", response_model=TokenPair)
-async def refresh(payload: RefreshRequest, response: Response, db: AsyncSession = Depends(get_db)):
+async def refresh(
+    payload: RefreshRequest,
+    request: Request,
+    response: Response,
+    db: AsyncSession = Depends(get_db),
+):
     try:
         data = decode_token(payload.refresh_token)
     except jwt.ExpiredSignatureError:
@@ -62,15 +64,7 @@ async def refresh(payload: RefreshRequest, response: Response, db: AsyncSession 
         raise HTTPException(status_code=401, detail="User not found")
     access = create_access_token(user.id, user.role.value)
     new_refresh = create_refresh_token(user.id)
-    response.set_cookie(
-        "access_token",
-        access,
-        httponly=True,
-        samesite="lax",
-        secure=not settings.DEBUG,
-        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-        path="/",
-    )
+    set_access_token_cookie(response, request, access)
     return TokenPair(access_token=access, refresh_token=new_refresh)
 
 
@@ -78,7 +72,7 @@ async def refresh(payload: RefreshRequest, response: Response, db: AsyncSession 
 async def logout(response: Response, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     db.add(AuditLog(user_id=user.id, entity_type="user", entity_id=user.id, action=AuditAction.logout))
     await db.commit()
-    response.delete_cookie("access_token", path="/")
+    clear_access_token_cookie(response)
     return {"ok": True}
 
 

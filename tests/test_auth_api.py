@@ -58,6 +58,7 @@ async def client():
 async def test_login_and_me(client: AsyncClient):
     r = await client.post("/api/auth/login", json={"username": "admin", "password": "admin123"})
     assert r.status_code == 200
+    assert "Secure" not in r.headers["set-cookie"]
     token = r.json()["access_token"]
     r2 = await client.get("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
     assert r2.status_code == 200
@@ -67,6 +68,13 @@ async def test_login_and_me(client: AsyncClient):
 async def test_login_bad_password(client: AsyncClient):
     r = await client.post("/api/auth/login", json={"username": "admin", "password": "wrong"})
     assert r.status_code == 401
+
+
+async def test_https_login_sets_secure_cookie(client: AsyncClient):
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="https://test") as secure_client:
+        r = await secure_client.post("/api/auth/login", json={"username": "admin", "password": "admin123"})
+    assert r.status_code == 200
+    assert "Secure" in r.headers["set-cookie"]
 
 
 async def test_viewer_cannot_create_car(client: AsyncClient):

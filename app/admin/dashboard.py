@@ -4,7 +4,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.admin._deps import admin_user_or_redirect
-from app.config import settings
+from app.core.cookies import clear_access_token_cookie, set_access_token_cookie
 from app.core.security import create_access_token, verify_password
 from app.database import get_db
 from app.models import AuditLog, Car, CarStatus, Lead, LeadStatus, User, UserRole
@@ -36,22 +36,14 @@ async def login_submit(
         )
     token = create_access_token(user.id, user.role.value)
     response = RedirectResponse(url="/admin/", status_code=status.HTTP_303_SEE_OTHER)
-    response.set_cookie(
-        "access_token",
-        token,
-        httponly=True,
-        samesite="lax",
-        secure=not settings.DEBUG,
-        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-        path="/",
-    )
+    set_access_token_cookie(response, request, token)
     return response
 
 
 @router.get("/logout")
 async def logout(request: Request):
     response = RedirectResponse(url="/admin/login", status_code=303)
-    response.delete_cookie("access_token", path="/")
+    clear_access_token_cookie(response)
     return response
 
 
