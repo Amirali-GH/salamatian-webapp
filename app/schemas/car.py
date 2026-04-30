@@ -17,7 +17,7 @@ class CarImageOut(BaseModel):
 class CarBase(BaseModel):
     brand: str = Field(min_length=1, max_length=100)
     model: str = Field(min_length=1, max_length=100)
-    year: int = Field(ge=1900, le=2100)
+    year: int = Field(ge=1000, le=2100)
     price: Decimal = Field(gt=0)
     mileage: int | None = Field(default=None, ge=0)
     gearbox: Gearbox | None = None
