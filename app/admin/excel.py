@@ -1,5 +1,7 @@
+import io
+
 from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, StreamingResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -79,6 +81,58 @@ async def excel_preview(
             "diff": payload["diff"],
             "file_path": payload["file_path"],
         },
+    )
+
+
+@router.get("/sample")
+async def excel_sample(user_or_redirect=Depends(admin_user_or_redirect)):
+    if isinstance(user_or_redirect, RedirectResponse):
+        return user_or_redirect
+    import openpyxl
+    from openpyxl.styles import Alignment, Font, PatternFill
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "خودروها"
+    ws.sheet_view.rightToLeft = True
+
+    headers = ["نام خودرو", "مدل", "کارکرد", "رنگ", "قیمت", "تامین کننده"]
+    header_fill = PatternFill(start_color="1F4E79", end_color="1F4E79", fill_type="solid")
+    header_font = Font(bold=True, color="FFFFFF", size=11)
+
+    for col_idx, header in enumerate(headers, start=1):
+        cell = ws.cell(row=1, column=col_idx, value=header)
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = Alignment(horizontal="center", vertical="center")
+        ws.column_dimensions[cell.column_letter].width = 20
+
+    sample_rows = [
+        ["پژو", "206 تیپ 5", 45000, "سفید", 850000000, "شرکت الف"],
+        ["سمند", "LX", 80000, "نقره‌ای", 620000000, "نمایندگی ب"],
+        ["تویوتا", "کرولا 2020", 12000, "مشکی", 1950000000, "واردات پارس"],
+    ]
+    row_font = Font(size=10)
+    for row_data in sample_rows:
+        row = ws.append(row_data)  # type: ignore[arg-type]
+
+    for row in ws.iter_rows(min_row=2):
+        for cell in row:
+            cell.font = row_font
+            cell.alignment = Alignment(horizontal="right")
+
+    ws.row_dimensions[1].height = 30
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    headers_resp = {
+        "Content-Disposition": 'attachment; filename="sample_cars.xlsx"',
+    }
+    return StreamingResponse(
+        buf,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers=headers_resp,
     )
 
 

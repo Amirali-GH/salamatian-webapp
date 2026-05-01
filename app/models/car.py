@@ -45,7 +45,7 @@ class Car(Base, TimestampMixin):
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     brand: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
     model: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
-    year: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    year: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
     price: Mapped[Decimal] = mapped_column(Numeric(18, 2), nullable=False)
     mileage: Mapped[int | None] = mapped_column(Integer, nullable=True)
     gearbox: Mapped[Gearbox | None] = mapped_column(Enum(Gearbox, name="gearbox"), nullable=True)
@@ -67,6 +67,7 @@ class Car(Base, TimestampMixin):
     source: Mapped[CarSource] = mapped_column(
         Enum(CarSource, name="car_source"), nullable=False, default=CarSource.manual, index=True
     )
+    supplier: Mapped[str | None] = mapped_column(String(150), nullable=True)
     excel_row_id: Mapped[str | None] = mapped_column(String(100), nullable=True, index=True)
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
