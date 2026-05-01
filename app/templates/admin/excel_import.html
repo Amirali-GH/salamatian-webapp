@@ -1,30 +1,85 @@
 {% extends "admin/layout.html" %}
 {% block page_title %}همگام‌سازی اکسل{% endblock %}
+{% block header_extras %}
+  <a href="/admin/excel/sample" class="btn btn-secondary" download>
+    ⬇ دانلود اکسل نمونه
+  </a>
+{% endblock %}
 {% block content %}
-{% if error %}<div class="error">{{ error }}</div>{% endif %}
-<form method="post" action="/admin/excel/upload" enctype="multipart/form-data" class="card">
-  <h2>بارگذاری فایل جدید</h2>
-  <p>پس از بارگذاری، پیش‌نمایش تغییرات نمایش داده می‌شود. هیچ تغییری تا تایید شما اعمال نخواهد شد.</p>
-  <input type="file" name="file" accept=".xlsx" required>
-  <button type="submit" class="btn btn-primary">بارگذاری</button>
-</form>
+{% if error %}<div class="alert alert-error">{{ error }}</div>{% endif %}
 
-<h2>تاریخچه</h2>
+<div class="card" style="margin-bottom:1.5rem">
+  <h2 style="margin-top:0">بارگذاری فایل اکسل</h2>
+  <p>پس از بارگذاری، پیش‌نمایش تغییرات نمایش داده می‌شود. هیچ تغییری تا تایید شما اعمال نخواهد شد.</p>
+
+  <div class="columns-hint" style="background:#f0f4ff;border-right:4px solid #1F4E79;padding:.75rem 1rem;border-radius:4px;margin-bottom:1rem;font-size:.9rem">
+    <strong>ستون‌های مورد پذیرش:</strong>
+    <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.5rem">
+      {% set cols = [
+        ("نام خودرو","اجباری"),
+        ("مدل","اجباری"),
+        ("قیمت","اجباری"),
+        ("کارکرد","اختیاری"),
+        ("رنگ","اختیاری"),
+        ("تامین کننده","اختیاری"),
+        ("سال","اختیاری"),
+      ] %}
+      {% for name, req in cols %}
+        <span style="padding:.25rem .6rem;border-radius:12px;font-size:.82rem;
+          background:{% if req=='اجباری' %}#1F4E79{% else %}#e2e8f0{% endif %};
+          color:{% if req=='اجباری' %}#fff{% else %}#334155{% endif %}">
+          {{ name }} <small>({{ req }})</small>
+        </span>
+      {% endfor %}
+    </div>
+    <div style="margin-top:.5rem;color:#64748b;font-size:.82rem">
+      هدر ستون‌ها باید دقیقاً با نام‌های بالا مطابقت داشته باشد. برای دانلود فایل نمونه از دکمه بالای صفحه استفاده کنید.
+    </div>
+  </div>
+
+  <form method="post" action="/admin/excel/upload" enctype="multipart/form-data"
+        style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap">
+    <input type="file" name="file" accept=".xlsx" required
+           style="flex:1;min-width:220px;padding:.45rem .6rem;border:1px solid #cbd5e1;border-radius:6px">
+    <button type="submit" class="btn btn-primary">بارگذاری و پیش‌نمایش</button>
+  </form>
+</div>
+
+<h2>تاریخچه بارگذاری‌ها</h2>
+{% if logs %}
 <table class="table">
-  <thead><tr><th>#</th><th>فایل</th><th>ردیف‌ها</th><th>افزوده</th><th>بروزرسانی</th><th>آرشیو</th><th>هشدار</th><th>تاریخ</th></tr></thead>
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>فایل</th>
+      <th>ردیف‌ها</th>
+      <th>افزوده</th>
+      <th>بروزرسانی</th>
+      <th>آرشیو</th>
+      <th>هشدار</th>
+      <th>تاریخ اعمال</th>
+    </tr>
+  </thead>
   <tbody>
   {% for l in logs %}
     <tr>
       <td>{{ l.id }}</td>
-      <td>{{ l.file_path.split('/')[-1] }}</td>
+      <td style="direction:ltr;text-align:right">{{ l.file_path.split('/')[-1] }}</td>
       <td>{{ l.imported_rows }}</td>
-      <td>{{ l.added_rows }}</td>
-      <td>{{ l.updated_rows }}</td>
-      <td>{{ l.removed_rows }}</td>
-      <td>{{ (l.warnings or [])|length }}</td>
+      <td><span class="badge badge-green">{{ l.added_rows }}</span></td>
+      <td><span class="badge badge-blue">{{ l.updated_rows }}</span></td>
+      <td><span class="badge badge-gray">{{ l.removed_rows }}</span></td>
+      <td>
+        {% if (l.warnings or [])|length %}
+          <span class="badge badge-yellow">{{ (l.warnings or [])|length }}</span>
+        {% else %}—{% endif %}
+      </td>
       <td>{{ l.applied_at.strftime('%Y-%m-%d %H:%M') if l.applied_at else '—' }}</td>
     </tr>
   {% endfor %}
   </tbody>
 </table>
+{% else %}
+  <p style="color:#64748b">هنوز هیچ فایلی بارگذاری نشده است.</p>
+{% endif %}
 {% endblock %}

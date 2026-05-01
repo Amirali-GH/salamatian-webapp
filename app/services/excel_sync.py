@@ -31,8 +31,9 @@ from app.models import (
     ExcelImportLog,
 )
 
-REQUIRED_COLUMNS = {"brand", "model", "year", "price"}
+REQUIRED_COLUMNS = {"brand", "model", "price"}
 OPTIONAL_COLUMNS = {
+    "year",
     "mileage",
     "color",
     "gearbox",
@@ -41,8 +42,22 @@ OPTIONAL_COLUMNS = {
     "excel_row_id",
     "body_status",
     "description",
+    "supplier",
 }
 ALL_COLUMNS = REQUIRED_COLUMNS | OPTIONAL_COLUMNS
+
+# Mapping from Persian column headers to internal English field names
+PERSIAN_HEADER_MAP: dict[str, str] = {
+    "نام خودرو": "brand",
+    "مدل": "model",
+    "کارکرد": "mileage",
+    "رنگ": "color",
+    "قیمت": "price",
+    "تامین کننده": "supplier",
+    "تامین‌کننده": "supplier",
+    "سال": "year",
+    "سال ساخت": "year",
+}
 
 TOKEN_TTL_SECONDS = 60 * 60  # 1 hour
 
@@ -51,7 +66,13 @@ TOKEN_TTL_SECONDS = 60 * 60  # 1 hour
 
 
 def _normalize_header(cell: Any) -> str:
-    return str(cell).strip().lower().replace(" ", "_") if cell is not None else ""
+    if cell is None:
+        return ""
+    raw = str(cell).strip()
+    # Check Persian headers first (before lowercasing)
+    if raw in PERSIAN_HEADER_MAP:
+        return PERSIAN_HEADER_MAP[raw]
+    return raw.lower().replace(" ", "_")
 
 
 def _coerce_int(value: Any) -> int | None:
@@ -116,8 +137,9 @@ def parse_workbook(path: Path) -> tuple[list[dict[str, Any]], list[dict[str, Any
                 if record.get(col) in (None, ""):
                     row_warnings.append(f"missing {col}")
 
-            year = _coerce_int(record.get("year"))
-            if year is None and record.get("year") not in (None, ""):
+            year_raw = record.get("year")
+            year = _coerce_int(year_raw)
+            if year is None and year_raw not in (None, ""):
                 row_warnings.append("invalid year")
             record["year"] = year
 
@@ -182,7 +204,7 @@ def _db_key(car: Car) -> str:
 
 def _diff_row(row: dict[str, Any], car: Car) -> dict[str, Any]:
     changes: dict[str, Any] = {}
-    for field in ("price", "mileage", "color", "gearbox", "fuel_type", "location", "body_status", "description"):
+    for field in ("price", "mileage", "color", "gearbox", "fuel_type", "location", "body_status", "description", "supplier"):
         if field not in row:
             continue
         incoming = row[field]
@@ -220,8 +242,11 @@ async def build_diff(
                     "row_number": row["_row_number"],
                     "brand": row["brand"],
                     "model": row["model"],
-                    "year": row["year"],
+                    "year": row.get("year"),
                     "price": str(row["price"]),
+                    "mileage": row.get("mileage"),
+                    "color": row.get("color"),
+                    "supplier": row.get("supplier"),
                     "excel_row_id": row.get("excel_row_id"),
                     "data": {k: (str(v) if isinstance(v, Decimal) else v) for k, v in row.items() if not k.startswith("_")},
                 }
@@ -351,6 +376,7 @@ async def apply_diff(db: AsyncSession, token: str, user_id: int | None) -> dict[
                 "location": incoming.get("location"),
                 "body_status": incoming.get("body_status"),
                 "description": incoming.get("description"),
+                "supplier": incoming.get("supplier"),
             }
             for field, new_val in field_map.items():
                 if new_val is None:
@@ -405,6 +431,7 @@ async def apply_diff(db: AsyncSession, token: str, user_id: int | None) -> dict[
                 location=incoming.get("location"),
                 body_status=incoming.get("body_status"),
                 description=incoming.get("description"),
+                supplier=incoming.get("supplier"),
                 status=CarStatus.pending,
                 source=CarSource.excel,
                 excel_row_id=incoming.get("excel_row_id"),
