@@ -3,11 +3,18 @@
 {% block body %}
 <div class="login-shell">
   <form method="post" action="/admin/login" class="login-card">
-    <h1>ورود مدیر</h1>
-    {% if error %}<div class="error">{{ error }}</div>{% endif %}
-    <label>نام کاربری<input name="username" required autofocus></label>
-    <label>رمز عبور<input name="password" type="password" required></label>
-    <button type="submit">ورود</button>
+    <div class="login-logo">🚗</div>
+    <h1>پنل <span>سلامتیان</span></h1>
+    {% if error %}<div class="error">⚠ {{ error }}</div>{% endif %}
+    <label>
+      نام کاربری
+      <input name="username" required autofocus placeholder="نام کاربری خود را وارد کنید">
+    </label>
+    <label>
+      رمز عبور
+      <input name="password" type="password" required placeholder="••••••••">
+    </label>
+    <button type="submit">ورود به پنل مدیریت</button>
   </form>
 </div>
 {% endblock %}

@@ -1,92 +1,104 @@
 {% extends "admin/layout.html" %}
 {% block page_title %}پیش‌نمایش تغییرات اکسل{% endblock %}
 {% block content %}
-<p style="color:#64748b;font-size:.9rem">فایل: <code style="direction:ltr">{{ file_path }}</code></p>
 
-<div class="kpi-grid" style="margin-bottom:1.5rem">
-  <div class="kpi"><h2 style="color:#16a34a">{{ diff.new_cars|length }}</h2><p>جدید</p></div>
-  <div class="kpi"><h2 style="color:#2563eb">{{ diff.updated_cars|length }}</h2><p>تغییر یافته</p></div>
-  <div class="kpi"><h2 style="color:#dc2626">{{ diff.removed_cars|length }}</h2><p>برای آرشیو</p></div>
-  <div class="kpi"><h2 style="color:#64748b">{{ diff.unchanged }}</h2><p>بدون تغییر</p></div>
-  <div class="kpi"><h2 style="color:#d97706">{{ diff.warnings|length }}</h2><p>هشدار</p></div>
+<p style="color:var(--muted);font-size:.88rem;margin-bottom:1.5rem">
+  📄 فایل: <code style="direction:ltr;background:var(--bg);padding:.2rem .5rem;border-radius:4px;border:1px solid var(--border)">{{ file_path }}</code>
+</p>
+
+<div class="kpi-grid" style="margin-bottom:1.75rem">
+  <div class="kpi">
+    <p class="kpi-label">جدید</p>
+    <h2 class="kpi-value" style="color:var(--success)">{{ diff.new_cars|length }}</h2>
+  </div>
+  <div class="kpi">
+    <p class="kpi-label">تغییر یافته</p>
+    <h2 class="kpi-value" style="color:#2563eb">{{ diff.updated_cars|length }}</h2>
+  </div>
+  <div class="kpi">
+    <p class="kpi-label">برای آرشیو</p>
+    <h2 class="kpi-value" style="color:var(--danger)">{{ diff.removed_cars|length }}</h2>
+  </div>
+  <div class="kpi">
+    <p class="kpi-label">بدون تغییر</p>
+    <h2 class="kpi-value" style="color:var(--muted)">{{ diff.unchanged }}</h2>
+  </div>
+  <div class="kpi">
+    <p class="kpi-label">هشدار</p>
+    <h2 class="kpi-value" style="color:var(--warning)">{{ diff.warnings|length }}</h2>
+  </div>
 </div>
 
-<div style="display:flex;gap:.75rem;margin-bottom:2rem">
+<div class="apply-bar">
   <form method="post" action="/admin/excel/apply/{{ token }}">
     <button type="submit" class="btn btn-primary">✔ اعمال تغییرات</button>
   </form>
-  <a href="/admin/excel" class="btn">انصراف</a>
+  <a href="/admin/excel" class="btn">✕ انصراف</a>
 </div>
 
 {% if diff.warnings %}
-<section>
-  <h3 style="color:#d97706">⚠ هشدارها</h3>
-  <table class="table">
-    <thead><tr><th>ردیف</th><th>مشکل</th></tr></thead>
-    <tbody>
-    {% for w in diff.warnings %}
-      <tr><td>{{ w.row }}</td><td>{{ w.issue }}</td></tr>
-    {% endfor %}
-    </tbody>
-  </table>
-</section>
+<div class="card" style="border-right:4px solid var(--warning);margin-bottom:1.5rem">
+  <div class="card-title" style="color:var(--warning)">⚠ هشدارها ({{ diff.warnings|length }})</div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>ردیف</th><th>مشکل</th></tr></thead>
+      <tbody>
+        {% for w in diff.warnings %}
+        <tr>
+          <td>{{ w.row }}</td>
+          <td>{{ w.issue }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
 {% endif %}
 
 {% if diff.new_cars %}
-<section>
-  <h3 style="color:#16a34a">➕ خودروهای جدید ({{ diff.new_cars|length }})</h3>
-  <div style="overflow-x:auto">
-  <table class="table">
-    <thead>
-      <tr>
-        <th>ردیف</th>
-        <th>نام خودرو</th>
-        <th>مدل</th>
-        <th>کارکرد</th>
-        <th>رنگ</th>
-        <th>قیمت</th>
-        <th>تامین کننده</th>
-      </tr>
-    </thead>
-    <tbody>
-    {% for c in diff.new_cars %}
-      <tr>
-        <td>{{ c.row_number }}</td>
-        <td>{{ c.brand }}</td>
-        <td>{{ c.model }}{% if c.year %} ({{ c.year }}){% endif %}</td>
-        <td>{{ c.mileage | default('—') }}</td>
-        <td>{{ c.color | default('—') }}</td>
-        <td>{{ c.price }}</td>
-        <td>{{ c.supplier | default('—') }}</td>
-      </tr>
-    {% endfor %}
-    </tbody>
-  </table>
+<div class="card" style="border-right:4px solid var(--success);margin-bottom:1.5rem">
+  <div class="card-title" style="color:var(--success)">➕ خودروهای جدید ({{ diff.new_cars|length }})</div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ردیف</th><th>نام خودرو</th><th>مدل</th>
+          <th>کارکرد</th><th>رنگ</th><th>قیمت</th><th>تامین کننده</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in diff.new_cars %}
+        <tr>
+          <td style="color:var(--muted)">{{ c.row_number }}</td>
+          <td style="font-weight:500">{{ c.brand }}</td>
+          <td>{{ c.model }}{% if c.year %} <small style="color:var(--muted)">({{ c.year }})</small>{% endif %}</td>
+          <td>{{ c.mileage | default('—') }}</td>
+          <td>{{ c.color | default('—') }}</td>
+          <td style="font-weight:600;color:var(--primary)">{{ c.price }}</td>
+          <td>{{ c.supplier | default('—') }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
-</section>
+</div>
 {% endif %}
 
 {% if diff.updated_cars %}
-<section>
-  <h3 style="color:#2563eb">✏ تغییر یافته ({{ diff.updated_cars|length }})</h3>
-  <div style="overflow-x:auto">
-  <table class="table">
-    <thead>
-      <tr>
-        <th>شناسه</th>
-        <th>نام خودرو</th>
-        <th>مدل</th>
-        <th>تغییرات</th>
-      </tr>
-    </thead>
-    <tbody>
-    {% for c in diff.updated_cars %}
-      <tr>
-        <td>{{ c.car_id }}</td>
-        <td>{{ c.brand }}</td>
-        <td>{{ c.model }}{% if c.year %} ({{ c.year }}){% endif %}</td>
-        <td>
-          {% for field, vals in c.changes.items() %}
+<div class="card" style="border-right:4px solid #2563eb;margin-bottom:1.5rem">
+  <div class="card-title" style="color:#2563eb">✏ تغییر یافته ({{ diff.updated_cars|length }})</div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr><th>شناسه</th><th>نام خودرو</th><th>مدل</th><th>تغییرات</th></tr>
+      </thead>
+      <tbody>
+        {% for c in diff.updated_cars %}
+        <tr>
+          <td style="color:var(--muted)">{{ c.car_id }}</td>
+          <td style="font-weight:500">{{ c.brand }}</td>
+          <td>{{ c.model }}{% if c.year %} <small style="color:var(--muted)">({{ c.year }})</small>{% endif %}</td>
+          <td>
             {% set labels = {
               "price": "قیمت",
               "mileage": "کارکرد",
@@ -98,47 +110,44 @@
               "gearbox": "گیربکس",
               "fuel_type": "سوخت",
             } %}
-            <div>
-              <b>{{ labels.get(field, field) }}</b>:
-              <span style="color:#dc2626">{{ vals.old or '—' }}</span>
-              →
-              <span style="color:#16a34a">{{ vals.new or '—' }}</span>
+            {% for field, vals in c.changes.items() %}
+            <div style="margin:.2rem 0;font-size:.88rem">
+              <b style="color:var(--muted)">{{ labels.get(field, field) }}:</b>
+              <span style="color:var(--danger);text-decoration:line-through">{{ vals.old or '—' }}</span>
+              <span style="color:var(--muted);margin:0 .3rem">→</span>
+              <span style="color:var(--success);font-weight:600">{{ vals.new or '—' }}</span>
             </div>
-          {% endfor %}
-        </td>
-      </tr>
-    {% endfor %}
-    </tbody>
-  </table>
+            {% endfor %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
-</section>
+</div>
 {% endif %}
 
 {% if diff.removed_cars %}
-<section>
-  <h3 style="color:#dc2626">🗄 آرشیو می‌شوند ({{ diff.removed_cars|length }})</h3>
-  <div style="overflow-x:auto">
-  <table class="table">
-    <thead>
-      <tr>
-        <th>شناسه</th>
-        <th>نام خودرو</th>
-        <th>مدل</th>
-        <th>قیمت</th>
-      </tr>
-    </thead>
-    <tbody>
-    {% for c in diff.removed_cars %}
-      <tr>
-        <td>{{ c.car_id }}</td>
-        <td>{{ c.brand }}</td>
-        <td>{{ c.model }}{% if c.year %} ({{ c.year }}){% endif %}</td>
-        <td>{{ c.price }}</td>
-      </tr>
-    {% endfor %}
-    </tbody>
-  </table>
+<div class="card" style="border-right:4px solid var(--danger);margin-bottom:1.5rem">
+  <div class="card-title" style="color:var(--danger)">🗄 آرشیو می‌شوند ({{ diff.removed_cars|length }})</div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr><th>شناسه</th><th>نام خودرو</th><th>مدل</th><th>قیمت</th></tr>
+      </thead>
+      <tbody>
+        {% for c in diff.removed_cars %}
+        <tr>
+          <td style="color:var(--muted)">{{ c.car_id }}</td>
+          <td style="font-weight:500">{{ c.brand }}</td>
+          <td>{{ c.model }}{% if c.year %} <small style="color:var(--muted)">({{ c.year }})</small>{% endif %}</td>
+          <td>{{ c.price }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
-</section>
+</div>
 {% endif %}
+
 {% endblock %}
