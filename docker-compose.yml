@@ -123,7 +123,7 @@ services:
         limits:
           memory: 128m
   nginx:
-    image: nginx:alpine
+    image: mirror-docker.runflare.com/nginx:alpine
     ports:
       - "${NGINX_PORT}:80"
       - "443:443"
