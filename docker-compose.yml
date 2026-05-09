@@ -4,6 +4,8 @@
 #     docker compose up -d
 #     docker compose exec web alembic upgrade head
 #     docker compose exec web python scripts/seed_admin.py
+#     docker-compose -f docker-compose.mirror.yml exec postgres psql -U salamatian -d postgres -c "CREATE DATABASE salamatian;"
+
 #
 # Check status
 #     docker compose ps
