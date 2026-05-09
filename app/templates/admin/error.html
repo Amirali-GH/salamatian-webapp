@@ -1,9 +1,15 @@
 {% extends "base.html" %}
 {% block body %}
-<div class="error-shell">
-  <h1>خطا {{ status_code }}</h1>
+<div class="error-page">
+  <h1>{{ status_code }}</h1>
   <p>{{ message }}</p>
-  {% if request_id %}<small>شناسه درخواست: {{ request_id }}</small>{% endif %}
-  <p><a href="/admin/">بازگشت به داشبورد</a></p>
+  {% if request_id %}
+  <p style="font-size:12px;color:var(--text-3);margin-top:-16px;margin-bottom:20px">
+    شناسه درخواست: <code style="font-family:monospace;font-size:11.5px">{{ request_id }}</code>
+  </p>
+  {% endif %}
+  <a href="/admin/" style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:var(--brand);color:#fff;border-radius:var(--r-sm);font-weight:500;font-size:14px">
+    بازگشت به داشبورد
+  </a>
 </div>
 {% endblock %}

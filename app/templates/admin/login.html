@@ -1,20 +1,67 @@
 {% extends "base.html" %}
-{% block title %}ورود به پنل{% endblock %}
+{% block title %}ورود به پنل مدیریت{% endblock %}
 {% block body %}
+
+{# SVG sprite needed on login page too #}
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+  <defs>
+    <symbol id="ic-car-login" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M7 17H5a2 2 0 0 1-2-2v-3l2.5-6h13L21 12v3a2 2 0 0 1-2 2h-2"/>
+      <circle cx="8.5" cy="17" r="2"/>
+      <circle cx="15.5" cy="17" r="2"/>
+      <path d="M3 12h18"/>
+    </symbol>
+    <symbol id="ic-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+      <line x1="12" y1="9" x2="12" y2="13"/>
+      <line x1="12" y1="17" x2="12.01" y2="17"/>
+    </symbol>
+  </defs>
+</svg>
+
 <div class="login-shell">
-  <form method="post" action="/admin/login" class="login-card">
-    <div class="login-logo">🚗</div>
-    <h1>پنل <span>سلامتیان</span></h1>
-    {% if error %}<div class="error">⚠ {{ error }}</div>{% endif %}
-    <label>
-      نام کاربری
-      <input name="username" required autofocus placeholder="نام کاربری خود را وارد کنید">
-    </label>
-    <label>
-      رمز عبور
-      <input name="password" type="password" required placeholder="••••••••">
-    </label>
-    <button type="submit">ورود به پنل مدیریت</button>
-  </form>
+  <div class="login-card">
+
+    <div class="login-logo-wrap">
+      <div class="login-logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 17H5a2 2 0 0 1-2-2v-3l2.5-6h13L21 12v3a2 2 0 0 1-2 2h-2"/>
+          <circle cx="8.5" cy="17" r="2"/>
+          <circle cx="15.5" cy="17" r="2"/>
+          <path d="M3 12h18"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="login-heading">
+      <h1 class="login-title">سلامتیان</h1>
+      <p class="login-sub">برای ورود به پنل مدیریت، اطلاعات خود را وارد کنید</p>
+    </div>
+
+    {% if error %}
+    <div class="login-error" role="alert">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+        <line x1="12" y1="9" x2="12" y2="13"/>
+        <line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+      {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="post" action="/admin/login" class="login-form" novalidate>
+      <label for="username">
+        نام کاربری
+        <input id="username" name="username" type="text" required autofocus autocomplete="username" placeholder="نام کاربری خود را وارد کنید">
+      </label>
+      <label for="password">
+        رمز عبور
+        <input id="password" name="password" type="password" required autocomplete="current-password" placeholder="رمز عبور">
+      </label>
+      <button type="submit" class="login-btn">ورود به پنل</button>
+    </form>
+
+  </div>
 </div>
+
 {% endblock %}

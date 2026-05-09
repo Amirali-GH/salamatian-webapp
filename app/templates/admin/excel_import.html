@@ -2,65 +2,81 @@
 {% block page_title %}همگام‌سازی اکسل{% endblock %}
 {% block header_extras %}
   <a href="/admin/excel/sample" class="btn btn-secondary" download>
-    ⬇ دانلود اکسل نمونه
+    <svg><use href="#ic-download"/></svg>
+    دانلود اکسل نمونه
   </a>
 {% endblock %}
 {% block content %}
 
 {% if error %}
-<div class="alert alert-error" style="margin-bottom:1.25rem">⚠ {{ error }}</div>
+<div class="notice notice-error" role="alert">
+  <svg><use href="#ic-warn"/></svg>
+  {{ error }}
+</div>
 {% endif %}
 
-<div class="card">
-  <div class="card-title">📤 بارگذاری فایل اکسل</div>
-  <p style="color:var(--muted);margin:0 0 1.25rem;font-size:.9rem">
-    پس از بارگذاری، پیش‌نمایش تغییرات نمایش داده می‌شود. هیچ تغییری تا تأیید شما اعمال نخواهد شد.
-  </p>
-
-  <div class="columns-hint">
-    <strong>ستون‌های مورد پذیرش:</strong>
-    <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.6rem">
-      {% set cols = [
-        ("نام خودرو","اجباری"),
-        ("مدل","اجباری"),
-        ("قیمت","اجباری"),
-        ("کارکرد","اختیاری"),
-        ("رنگ","اختیاری"),
-        ("تامین کننده","اختیاری"),
-        ("سال","اختیاری"),
-      ] %}
-      {% for name, req in cols %}
-        <span style="padding:.25rem .7rem;border-radius:20px;font-size:.82rem;font-weight:500;
-          background:{% if req=='اجباری' %}var(--primary){% else %}var(--panel){% endif %};
-          color:{% if req=='اجباری' %}#fff{% else %}var(--muted){% endif %};
-          border:1px solid {% if req=='اجباری' %}var(--primary){% else %}var(--border){% endif %}">
-          {{ name }} <small style="opacity:.75">({{ req }})</small>
-        </span>
-      {% endfor %}
+{# ── Upload card ──────────────────────────────────────────── #}
+<div class="card" style="margin-bottom:24px">
+  <div class="card-header">
+    <div class="card-title">
+      <svg class="icon"><use href="#ic-upload"/></svg>
+      بارگذاری فایل اکسل
     </div>
-    <p style="margin:.6rem 0 0;color:var(--muted);font-size:.82rem">
-      هدر ستون‌ها باید دقیقاً با نام‌های بالا مطابقت داشته باشد. برای دانلود فایل نمونه از دکمه بالای صفحه استفاده کنید.
-    </p>
   </div>
+  <div class="card-body">
+    <p style="font-size:13.5px;color:var(--text-3);margin-bottom:18px">
+      پس از بارگذاری، پیش‌نمایش تغییرات نمایش داده می‌شود. هیچ تغییری تا تأیید شما اعمال نخواهد شد.
+    </p>
 
-  <form method="post" action="/admin/excel/upload" enctype="multipart/form-data"
-        style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap">
-    <input type="file" name="file" accept=".xlsx" required
-           style="flex:1;min-width:220px">
-    <button type="submit" class="btn btn-primary">📊 بارگذاری و پیش‌نمایش</button>
-  </form>
+    <div class="col-hint">
+      <div class="col-hint-title">ستون‌های مورد پذیرش</div>
+      <div class="col-tags">
+        {% set cols = [
+          ("نام خودرو","req"),
+          ("مدل","req"),
+          ("قیمت","req"),
+          ("کارکرد","opt"),
+          ("رنگ","opt"),
+          ("تامین کننده","opt"),
+          ("سال","opt"),
+        ] %}
+        {% for name, t in cols %}
+        <span class="col-tag col-tag-{{ t }}">
+          {{ name }}{% if t == 'req' %} *{% endif %}
+        </span>
+        {% endfor %}
+      </div>
+      <p class="col-hint-note">
+        ستون‌های ستاره‌دار اجباری هستند. هدر ستون‌ها باید دقیقاً با نام‌های بالا مطابقت داشته باشد. برای دانلود فایل نمونه از دکمه بالای صفحه استفاده کنید.
+      </p>
+    </div>
+
+    <form method="post" action="/admin/excel/upload" enctype="multipart/form-data">
+      <div class="upload-row">
+        <input type="file" name="file" accept=".xlsx" required aria-label="انتخاب فایل اکسل">
+        <button type="submit" class="btn btn-primary">
+          <svg><use href="#ic-upload"/></svg>
+          بارگذاری و پیش‌نمایش
+        </button>
+      </div>
+    </form>
+  </div>
 </div>
 
-<h2 class="section-head">📁 تاریخچه بارگذاری‌ها</h2>
+{# ── Upload history ───────────────────────────────────────── #}
+<h2 class="section-head">
+  <svg><use href="#ic-document"/></svg>
+  تاریخچه بارگذاری‌ها
+</h2>
 
 {% if logs %}
-<div class="card" style="padding:0;overflow:hidden">
+<div class="card">
   <div class="table-wrap">
     <table class="table">
       <thead>
         <tr>
           <th>#</th>
-          <th>فایل</th>
+          <th>نام فایل</th>
           <th>ردیف‌ها</th>
           <th>افزوده</th>
           <th>بروزرسانی</th>
@@ -72,18 +88,23 @@
       <tbody>
         {% for l in logs %}
         <tr>
-          <td style="color:var(--muted);font-size:.82rem">{{ l.id }}</td>
-          <td style="direction:ltr;text-align:right;font-size:.85rem;color:var(--muted)">{{ l.file_path.split('/')[-1] }}</td>
+          <td style="color:var(--text-3);font-size:12.5px">{{ l.id }}</td>
+          <td style="direction:ltr;text-align:right;font-size:12.5px;color:var(--text-3)">{{ l.file_path.split('/')[-1] }}</td>
           <td>{{ l.imported_rows }}</td>
-          <td><span class="badge badge-green">＋{{ l.added_rows }}</span></td>
-          <td><span class="badge badge-blue">✏ {{ l.updated_rows }}</span></td>
-          <td><span class="badge badge-gray">📦 {{ l.removed_rows }}</span></td>
+          <td><span class="badge badge-green">+{{ l.added_rows }}</span></td>
+          <td><span class="badge badge-blue">{{ l.updated_rows }}</span></td>
+          <td><span class="badge badge-gray">{{ l.removed_rows }}</span></td>
           <td>
             {% if (l.warnings or [])|length %}
-              <span class="badge badge-yellow">⚠ {{ (l.warnings or [])|length }}</span>
-            {% else %}—{% endif %}
+            <span class="badge badge-amber">
+              <svg class="icon-sm"><use href="#ic-warn"/></svg>
+              {{ (l.warnings or [])|length }}
+            </span>
+            {% else %}
+            <span style="color:var(--text-3)">—</span>
+            {% endif %}
           </td>
-          <td style="font-size:.85rem">{{ l.applied_at.strftime('%Y-%m-%d %H:%M') if l.applied_at else '—' }}</td>
+          <td style="font-size:12.5px;white-space:nowrap">{{ l.applied_at.strftime('%Y-%m-%d %H:%M') if l.applied_at else '—' }}</td>
         </tr>
         {% endfor %}
       </tbody>
@@ -91,7 +112,10 @@
   </div>
 </div>
 {% else %}
-  <div class="alert alert-info">هنوز هیچ فایلی بارگذاری نشده است.</div>
+<div class="notice notice-info">
+  <svg><use href="#ic-info"/></svg>
+  هنوز هیچ فایلی بارگذاری نشده است.
+</div>
 {% endif %}
 
 {% endblock %}

@@ -2,62 +2,79 @@
 {% block page_title %}سرنخ‌ها{% endblock %}
 {% block content %}
 
-<form method="get" class="filters">
-  <select name="type">
+<form method="get" class="filter-bar" aria-label="فیلتر سرنخ‌ها">
+  <select name="type" aria-label="نوع سرنخ">
     <option value="">همه انواع</option>
     {% for t in types %}<option value="{{ t }}">{{ t }}</option>{% endfor %}
   </select>
-  <select name="status_">
+  <select name="status_" aria-label="وضعیت سرنخ">
     <option value="">همه وضعیت‌ها</option>
     {% for s in statuses %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
   </select>
-  <button type="submit" class="btn btn-primary">🔍 فیلتر</button>
+  <button type="submit" class="btn">
+    <svg><use href="#ic-search"/></svg>
+    فیلتر
+  </button>
 </form>
 
-<div class="card" style="padding:0;overflow:hidden">
+<div class="card">
   <div class="table-wrap">
     <table class="table">
       <thead>
         <tr>
-          <th>#</th><th>نوع</th><th>نام</th><th>تلفن</th>
-          <th>خودرو</th><th>وضعیت</th><th>یادداشت / بروزرسانی</th><th>زمان</th><th></th>
+          <th>#</th>
+          <th>نوع</th>
+          <th>نام</th>
+          <th>تلفن</th>
+          <th>خودرو</th>
+          <th>وضعیت</th>
+          <th>یادداشت / بروزرسانی</th>
+          <th>زمان</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
         {% for l in leads %}
         <tr>
-          <td style="color:var(--muted);font-size:.82rem">{{ l.id }}</td>
+          <td style="color:var(--text-3);font-size:12.5px">{{ l.id }}</td>
           <td><span class="badge">{{ l.type.value }}</span></td>
           <td style="font-weight:500">{{ l.name }}</td>
-          <td style="direction:ltr;text-align:right">{{ l.phone }}</td>
-          <td style="font-size:.88rem">{{ l.car_brand or '' }} {{ l.car_model or '' }} {{ l.year or '' }}</td>
+          <td style="direction:ltr;text-align:right;font-size:13px">{{ l.phone }}</td>
+          <td style="font-size:13px;color:var(--text-2)">{{ l.car_brand or '' }} {{ l.car_model or '' }} {{ l.year or '' }}</td>
           <td><span class="badge badge-{{ l.status.value }}">{{ l.status.value }}</span></td>
           <td>
-            <form method="post" action="/admin/leads/{{ l.id }}/update" style="display:flex;gap:.4rem;flex-wrap:wrap;align-items:center">
-              <select name="status_" style="height:34px;font-size:.85rem;min-width:100px">
+            <form method="post" action="/admin/leads/{{ l.id }}/update" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+              <select name="status_" style="height:32px;font-size:13px;min-width:90px;flex:0 0 auto">
                 {% for s in statuses %}
-                  <option value="{{ s }}" {% if l.status.value == s %}selected{% endif %}>{{ s }}</option>
+                <option value="{{ s }}" {% if l.status.value == s %}selected{% endif %}>{{ s }}</option>
                 {% endfor %}
               </select>
-              <input name="operator_note" value="{{ l.operator_note or '' }}" placeholder="یادداشت"
-                     style="height:34px;font-size:.85rem;flex:1;min-width:120px">
-              <button class="btn btn-primary" style="height:34px;padding:.3rem .7rem;font-size:.82rem">💾 ذخیره</button>
+              <input name="operator_note" value="{{ l.operator_note or '' }}" placeholder="یادداشت اپراتور" style="height:32px;font-size:13px;flex:1;min-width:110px">
+              <button type="submit" class="btn btn-sm btn-primary">
+                <svg><use href="#ic-check"/></svg>
+                ذخیره
+              </button>
             </form>
           </td>
-          <td style="font-size:.82rem;color:var(--muted);white-space:nowrap">{{ l.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+          <td style="font-size:12.5px;color:var(--text-3);white-space:nowrap">{{ l.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
           <td>
             {% if l.images_json %}
-              <span class="badge badge-blue">🖼 {{ l.images_json|length }}</span>
+            <span class="badge badge-blue">
+              <svg><use href="#ic-image"/></svg>
+              {{ l.images_json|length }}
+            </span>
             {% endif %}
           </td>
         </tr>
         {% else %}
-        <tr><td colspan="9" style="text-align:center;color:var(--muted);padding:2.5rem">سرنخی یافت نشد</td></tr>
+        <tr>
+          <td colspan="9" style="text-align:center;padding:40px;color:var(--text-3)">سرنخی یافت نشد</td>
+        </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 </div>
-<p style="color:var(--muted);font-size:.85rem;margin-top:.5rem">مجموع: <strong>{{ total }}</strong> سرنخ</p>
+<p class="table-count">مجموع: <strong>{{ total }}</strong> سرنخ</p>
 
 {% endblock %}

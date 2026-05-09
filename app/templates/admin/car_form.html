@@ -1,62 +1,92 @@
 {% extends "admin/layout.html" %}
 {% block page_title %}{{ 'ویرایش خودرو' if car else 'خودروی جدید' }}{% endblock %}
 {% block content %}
-<form method="post" action="{{ '/admin/cars/' ~ car.id ~ '/edit' if car else '/admin/cars/new' }}" class="form-grid">
-  <label>برند<input name="brand" required value="{{ car.brand if car }}"></label>
-  <label>مدل<input name="model" required value="{{ car.model if car }}"></label>
-  <label>سال<input type="number" name="year" required value="{{ car.year if car }}"></label>
-  <label>قیمت (تومان)<input name="price" required value="{{ car.price if car }}"></label>
-  <label>کارکرد<input type="number" name="mileage" value="{{ car.mileage if car else '' }}"></label>
-  <label>گیربکس
-    <select name="gearbox">
-      <option value="">—</option>
-      {% for g in ['manual','automatic','cvt','dct'] %}
-      <option value="{{ g }}" {% if car and car.gearbox and car.gearbox.value == g %}selected{% endif %}>{{ g }}</option>
-      {% endfor %}
-    </select>
-  </label>
-  <label>سوخت
-    <select name="fuel_type">
-      <option value="">—</option>
-      {% for f in ['gasoline','diesel','hybrid','electric','lpg','cng'] %}
-      <option value="{{ f }}" {% if car and car.fuel_type and car.fuel_type.value == f %}selected{% endif %}>{{ f }}</option>
-      {% endfor %}
-    </select>
-  </label>
-  <label>رنگ<input name="color" value="{{ car.color if car and car.color else '' }}"></label>
-  <label>موقعیت<input name="location" value="{{ car.location if car and car.location else '' }}"></label>
-  <label>وضعیت
-    <select name="car_status">
-      {% for s in ['draft','pending','published','archived'] %}
-      <option value="{{ s }}" {% if car and car.status.value == s %}selected{% endif %}>{{ s }}</option>
-      {% endfor %}
-    </select>
-  </label>
-  <label class="full">توضیحات<textarea name="description" rows="4">{{ car.description if car and car.description else '' }}</textarea></label>
-  <button type="submit" class="btn btn-primary">ذخیره مشخصات</button>
-</form>
 
+{# ── Car info form ──────────────────────────────────────────── #}
+<div class="form-section">
+  <div class="form-section-title">مشخصات خودرو</div>
+  <form method="post" action="{{ '/admin/cars/' ~ car.id ~ '/edit' if car else '/admin/cars/new' }}">
+    <div class="form-grid">
+      <label>برند<input name="brand" required value="{{ car.brand if car }}" placeholder="مثال: تویوتا"></label>
+      <label>مدل<input name="model" required value="{{ car.model if car }}" placeholder="مثال: کرولا"></label>
+      <label>سال<input type="number" name="year" required value="{{ car.year if car }}" placeholder="1402" min="1350" max="1410"></label>
+      <label>قیمت (تومان)<input name="price" required value="{{ car.price if car }}" placeholder="850000000"></label>
+      <label>کارکرد (کیلومتر)<input type="number" name="mileage" value="{{ car.mileage if car else '' }}" placeholder="0"></label>
+      <label>گیربکس
+        <select name="gearbox">
+          <option value="">— انتخاب کنید</option>
+          {% for g in ['manual','automatic','cvt','dct'] %}
+          <option value="{{ g }}" {% if car and car.gearbox and car.gearbox.value == g %}selected{% endif %}>{{ g }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>نوع سوخت
+        <select name="fuel_type">
+          <option value="">— انتخاب کنید</option>
+          {% for f in ['gasoline','diesel','hybrid','electric','lpg','cng'] %}
+          <option value="{{ f }}" {% if car and car.fuel_type and car.fuel_type.value == f %}selected{% endif %}>{{ f }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>رنگ<input name="color" value="{{ car.color if car and car.color else '' }}" placeholder="سفید"></label>
+      <label>موقعیت<input name="location" value="{{ car.location if car and car.location else '' }}" placeholder="تهران"></label>
+      <label>وضعیت
+        <select name="car_status">
+          {% for s in ['draft','pending','published','archived'] %}
+          <option value="{{ s }}" {% if car and car.status.value == s %}selected{% endif %}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="full">توضیحات
+        <textarea name="description" rows="4" placeholder="توضیحات خودرو را اینجا وارد کنید...">{{ car.description if car and car.description else '' }}</textarea>
+      </label>
+      <div class="full" style="display:flex;gap:10px;align-items:center;padding-top:4px">
+        <button type="submit" class="btn btn-primary">
+          <svg class="icon"><use href="#ic-check"/></svg>
+          ذخیره مشخصات
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+
+{# ── Gallery section ────────────────────────────────────────── #}
 {% if not car %}
-<p style="margin-top:16px;color:#888">برای افزودن تصویر، ابتدا اطلاعات خودرو را ذخیره کنید.</p>
+<div class="notice notice-info">
+  <svg><use href="#ic-info"/></svg>
+  برای افزودن تصویر، ابتدا اطلاعات خودرو را ذخیره کنید.
+</div>
 {% endif %}
 
 {% if car %}
-<h2 style="margin-top:32px">گالری تصاویر</h2>
-<p style="color:#666;margin:0 0 12px">تصاویر را انتخاب کنید، در زیر پیش‌نمایش می‌بینید، می‌توانید حذف کنید و در نهایت با «ذخیره گالری» آپلود نمایید.</p>
+<div class="form-section">
+  <div class="form-section-title">گالری تصاویر</div>
+  <p style="font-size:13.5px;color:var(--text-3);margin-bottom:16px">
+    تصاویر را انتخاب کنید، پیش‌نمایش می‌بینید، می‌توانید حذف کنید و در نهایت با دکمه «ذخیره گالری» آپلود نمایید.
+  </p>
 
-<div id="upload-zone" style="border:2px dashed #aaa;border-radius:8px;padding:20px;text-align:center;cursor:pointer;background:#fafafa">
-  <p style="margin:0 0 6px;font-weight:600">📷 انتخاب تصاویر</p>
-  <p style="margin:0;font-size:12px;color:#888">کلیک کنید یا فایل‌ها را اینجا رها کنید — می‌توانید چند تصویر را همزمان انتخاب کنید</p>
-  <input id="image-input" type="file" multiple accept="image/*" style="display:none">
-</div>
+  <div id="upload-zone" class="gallery-zone" role="button" tabindex="0" aria-label="انتخاب تصاویر">
+    <div class="gallery-zone-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+        <circle cx="12" cy="13" r="4"/>
+      </svg>
+    </div>
+    <div class="gallery-zone-label">انتخاب تصاویر</div>
+    <div class="gallery-zone-sub">کلیک کنید یا فایل‌ها را اینجا رها کنید — می‌توانید چند تصویر را همزمان انتخاب کنید</div>
+    <input id="image-input" type="file" multiple accept="image/*" style="display:none" aria-hidden="true">
+  </div>
 
-<div id="upload-status" style="margin-top:12px;min-height:20px"></div>
+  <div id="upload-status" style="margin-top:10px;min-height:20px;font-size:13px;color:var(--text-3)"></div>
+  <div id="gallery-grid" class="gallery-grid"></div>
 
-<div id="gallery-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-top:16px"></div>
-
-<div style="margin-top:18px;display:flex;gap:10px;align-items:center">
-  <button type="button" id="btn-save-gallery" class="btn btn-primary" style="background:#28a745;color:#fff;border:none;border-radius:6px;padding:10px 20px;cursor:pointer;font-size:14px">ذخیره گالری</button>
-  <span id="pending-count" style="color:#666;font-size:13px"></span>
+  <div style="margin-top:20px;display:flex;gap:10px;align-items:center">
+    <button type="button" id="btn-save-gallery" class="btn btn-primary">
+      <svg class="icon"><use href="#ic-check"/></svg>
+      ذخیره گالری
+    </button>
+    <span id="pending-count" style="font-size:13px;color:var(--text-3)"></span>
+  </div>
 </div>
 
 <script id="existing-images-data" type="application/json">{{ images_json | tojson }}</script>
@@ -72,7 +102,6 @@
   const btnSave = document.getElementById('btn-save-gallery');
   const pendingCount = document.getElementById('pending-count');
 
-  // Each item: { kind: 'saved'|'pending', id?, path?, file?, url, sortOrder }
   let items = existing.map((img, i) => ({
     kind: 'saved',
     id: img.id,
@@ -83,16 +112,16 @@
 
   function render() {
     grid.innerHTML = items.map((it, idx) => `
-      <div class="image-card" data-idx="${idx}" style="position:relative;border:1px solid ${it.kind==='pending'?'#28a745':'#ddd'};border-radius:8px;overflow:hidden;background:#fff">
-        <img src="${it.url}" alt="" style="width:100%;height:140px;object-fit:cover;display:block">
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 8px;background:#f5f5f5;font-size:12px">
-          <span style="color:${it.kind==='pending'?'#28a745':'#333'}">${it.kind==='pending'?'⏳ جدید':'✓ ذخیره‌شده'} #${idx+1}</span>
-          <button type="button" class="btn-remove" data-idx="${idx}" style="background:#dc3545;color:#fff;border:none;border-radius:4px;padding:4px 10px;cursor:pointer;font-size:11px">حذف</button>
+      <div class="gallery-item" data-idx="${idx}">
+        <img src="${it.url}" alt="تصویر ${idx+1}">
+        <div class="gallery-item-footer">
+          <span style="color:${it.kind==='pending'?'var(--green)':'var(--text-3)'}">${it.kind==='pending'?'جدید':'ذخیره‌شده'} #${idx+1}</span>
+          <button type="button" class="btn-remove act-btn" data-idx="${idx}" style="height:24px;padding:0 8px;font-size:11.5px;color:var(--red);border-color:var(--red-border);background:var(--red-bg)">حذف</button>
         </div>
       </div>
     `).join('');
     const pending = items.filter(it => it.kind === 'pending').length;
-    pendingCount.textContent = pending ? `${pending} تصویر جدید آمادهٔ ذخیره است` : 'تغییری در انتظار نیست';
+    pendingCount.textContent = pending ? `${pending} تصویر جدید آماده ذخیره است` : '';
     btnSave.disabled = false;
     btnSave.style.opacity = '1';
   }
@@ -100,28 +129,20 @@
   function addFiles(files) {
     for (const f of files) {
       if (!f.type.startsWith('image/')) continue;
-      items.push({
-        kind: 'pending',
-        file: f,
-        url: URL.createObjectURL(f),
-        sortOrder: items.length,
-      });
+      items.push({ kind: 'pending', file: f, url: URL.createObjectURL(f), sortOrder: items.length });
     }
     render();
   }
 
   zone.addEventListener('click', () => input.click());
-  zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.background = '#eef'; });
-  zone.addEventListener('dragleave', () => { zone.style.background = '#fafafa'; });
+  zone.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') input.click(); });
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
   zone.addEventListener('drop', e => {
-    e.preventDefault();
-    zone.style.background = '#fafafa';
+    e.preventDefault(); zone.classList.remove('drag-over');
     if (e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
   });
-  input.addEventListener('change', () => {
-    if (input.files.length) addFiles(input.files);
-    input.value = '';
-  });
+  input.addEventListener('change', () => { if (input.files.length) addFiles(input.files); input.value = ''; });
 
   grid.addEventListener('click', e => {
     const btn = e.target.closest('.btn-remove');
@@ -133,10 +154,9 @@
       items.splice(idx, 1);
       render();
     } else {
-      if (!confirm('این تصویرِ ذخیره‌شده هنگام «ذخیره گالری» حذف خواهد شد. تأیید می‌کنید؟')) return;
+      if (!confirm('این تصویر ذخیره‌شده هنگام «ذخیره گالری» حذف خواهد شد. تأیید می‌کنید؟')) return;
       it.kind = 'deleted';
       items.splice(idx, 1);
-      // Track deleted IDs separately
       deletedIds.push(it.id);
       render();
     }
@@ -147,10 +167,9 @@
   btnSave.addEventListener('click', async () => {
     btnSave.disabled = true;
     btnSave.style.opacity = '0.6';
-    status.style.color = '#555';
+    status.style.color = 'var(--text-3)';
     let ok = 0, fail = 0;
 
-    // 1) Delete removed saved images
     for (const id of deletedIds.splice(0)) {
       status.textContent = 'در حال حذف تصاویر...';
       try {
@@ -160,7 +179,6 @@
       } catch (e) { console.error(e); fail++; }
     }
 
-    // 2) Upload pending images
     const pending = items.filter(it => it.kind === 'pending');
     if (pending.length) {
       status.textContent = `در حال بارگذاری ${pending.length} تصویر...`;
@@ -170,25 +188,21 @@
         const res = await fetch('/admin/cars/' + carId + '/images', { method: 'POST', body: fd, redirect: 'manual', credentials: 'include' });
         if (res.type === 'opaqueredirect' || res.ok || res.status === 303 || res.status === 0) {
           ok += pending.length;
-        } else {
-          throw new Error('HTTP ' + res.status);
-        }
+        } else { throw new Error('HTTP ' + res.status); }
       } catch (e) { console.error(e); fail += pending.length; }
     }
 
     if (fail) {
-      status.textContent = `✗ ${fail} مورد ناموفق، ${ok} موفق`;
-      status.style.color = '#dc3545';
-      btnSave.disabled = false;
-      btnSave.style.opacity = '1';
+      status.textContent = `${fail} مورد ناموفق، ${ok} موفق`;
+      status.style.color = 'var(--red)';
+      btnSave.disabled = false; btnSave.style.opacity = '1';
     } else if (ok) {
-      status.textContent = `✓ تغییرات با موفقیت ذخیره شد`;
-      status.style.color = '#28a745';
+      status.textContent = 'تغییرات با موفقیت ذخیره شد';
+      status.style.color = 'var(--green)';
       setTimeout(() => location.reload(), 700);
     } else {
       status.textContent = 'تغییری برای ذخیره وجود ندارد';
-      btnSave.disabled = false;
-      btnSave.style.opacity = '1';
+      btnSave.disabled = false; btnSave.style.opacity = '1';
     }
   });
 
@@ -196,4 +210,5 @@
 })();
 </script>
 {% endif %}
+
 {% endblock %}

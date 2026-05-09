@@ -2,39 +2,51 @@
 {% block page_title %}گزارش‌ها{% endblock %}
 {% block content %}
 
-<div class="tabs">
-  <a href="?tab=audit" class="{% if tab == 'audit' %}active{% endif %}">📋 سابقه تغییرات</a>
-  <a href="?tab=excel" class="{% if tab == 'excel' %}active{% endif %}">📊 اکسل</a>
+<div class="tab-list" role="tablist">
+  <a href="?tab=audit" class="tab {% if tab == 'audit' %}active{% endif %}" role="tab" aria-selected="{{ 'true' if tab == 'audit' else 'false' }}">
+    <svg><use href="#ic-activity"/></svg>
+    سابقه تغییرات
+  </a>
+  <a href="?tab=excel" class="tab {% if tab == 'excel' %}active{% endif %}" role="tab" aria-selected="{{ 'true' if tab == 'excel' else 'false' }}">
+    <svg><use href="#ic-table"/></svg>
+    بارگذاری اکسل
+  </a>
 </div>
 
 {% if tab == 'audit' %}
-<form method="get" class="filters">
+<form method="get" class="filter-bar">
   <input type="hidden" name="tab" value="audit">
   <input name="entity_type" placeholder="نوع موجودیت" value="{{ entity_type or '' }}">
   <input name="entity_id" placeholder="شناسه" value="{{ entity_id or '' }}">
-  <button type="submit" class="btn btn-primary">🔍 فیلتر</button>
+  <button type="submit" class="btn">
+    <svg><use href="#ic-search"/></svg>
+    فیلتر
+  </button>
 </form>
 
-<div class="card" style="padding:0;overflow:hidden">
+<div class="card">
   <div class="table-wrap">
     <table class="table">
       <thead>
-        <tr><th>#</th><th>زمان</th><th>عمل</th><th>موجودیت</th><th>شناسه</th><th>کاربر</th><th>قبل</th><th>بعد</th></tr>
+        <tr>
+          <th>#</th><th>زمان</th><th>عملیات</th><th>موجودیت</th>
+          <th>شناسه</th><th>کاربر</th><th>قبل</th><th>بعد</th>
+        </tr>
       </thead>
       <tbody>
         {% for a in audit %}
         <tr>
-          <td style="color:var(--muted);font-size:.82rem">{{ a.id }}</td>
-          <td style="font-size:.82rem;white-space:nowrap">{{ a.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+          <td style="color:var(--text-3);font-size:12.5px">{{ a.id }}</td>
+          <td style="font-size:12.5px;white-space:nowrap;color:var(--text-3)">{{ a.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
           <td><span class="badge badge-{{ a.action.value }}">{{ a.action.value }}</span></td>
-          <td>{{ a.entity_type }}</td>
-          <td>{{ a.entity_id or '—' }}</td>
+          <td style="color:var(--text-2)">{{ a.entity_type }}</td>
+          <td style="color:var(--text-3);font-size:12.5px">{{ a.entity_id or '—' }}</td>
           <td>{{ a.user_id or 'سیستم' }}</td>
-          <td><code style="font-size:.78rem;color:var(--muted)">{{ a.old_value or '' }}</code></td>
-          <td><code style="font-size:.78rem;color:var(--primary-dark)">{{ a.new_value or '' }}</code></td>
+          <td><code style="font-size:11.5px;color:var(--text-3);font-family:monospace;word-break:break-all">{{ a.old_value or '' }}</code></td>
+          <td><code style="font-size:11.5px;color:var(--brand-active);font-family:monospace;word-break:break-all">{{ a.new_value or '' }}</code></td>
         </tr>
         {% else %}
-        <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:2rem">رکوردی یافت نشد</td></tr>
+        <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-3)">رکوردی یافت نشد</td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -42,7 +54,7 @@
 </div>
 
 {% else %}
-<div class="card" style="padding:0;overflow:hidden">
+<div class="card">
   <div class="table-wrap">
     <table class="table">
       <thead>
@@ -54,22 +66,25 @@
       <tbody>
         {% for l in excel_logs %}
         <tr>
-          <td style="color:var(--muted);font-size:.82rem">{{ l.id }}</td>
-          <td style="font-size:.82rem;direction:ltr;text-align:right;color:var(--muted)">{{ l.file_path.split('/')[-1] }}</td>
+          <td style="color:var(--text-3);font-size:12.5px">{{ l.id }}</td>
+          <td style="direction:ltr;text-align:right;font-size:12.5px;color:var(--text-3)">{{ l.file_path.split('/')[-1] }}</td>
           <td>{{ l.imported_rows }}</td>
-          <td><span class="badge badge-green">{{ l.added_rows }}</span></td>
+          <td><span class="badge badge-green">+{{ l.added_rows }}</span></td>
           <td><span class="badge badge-blue">{{ l.updated_rows }}</span></td>
           <td><span class="badge badge-gray">{{ l.removed_rows }}</span></td>
           <td>
             {% if (l.warnings or [])|length %}
-              <span class="badge badge-yellow">⚠ {{ (l.warnings or [])|length }}</span>
-            {% else %}—{% endif %}
+            <span class="badge badge-amber">
+              <svg class="icon-sm"><use href="#ic-warn"/></svg>
+              {{ (l.warnings or [])|length }}
+            </span>
+            {% else %}<span style="color:var(--text-3)">—</span>{% endif %}
           </td>
-          <td>{{ l.applied_by_user_id or '—' }}</td>
-          <td style="font-size:.82rem">{{ l.applied_at.strftime('%Y-%m-%d %H:%M') if l.applied_at else '—' }}</td>
+          <td style="color:var(--text-2)">{{ l.applied_by_user_id or '—' }}</td>
+          <td style="font-size:12.5px;white-space:nowrap">{{ l.applied_at.strftime('%Y-%m-%d %H:%M') if l.applied_at else '—' }}</td>
         </tr>
         {% else %}
-        <tr><td colspan="9" style="text-align:center;color:var(--muted);padding:2rem">هیچ رکوردی یافت نشد</td></tr>
+        <tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-3)">هیچ رکوردی یافت نشد</td></tr>
         {% endfor %}
       </tbody>
     </table>

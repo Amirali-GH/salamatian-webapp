@@ -2,33 +2,79 @@
 {% block page_title %}داشبورد{% endblock %}
 {% block content %}
 
-<div class="kpi-grid">
-  <div class="kpi">
-    <p class="kpi-label">🚗 کل خودروها</p>
-    <h2 class="kpi-value">{{ total_cars }}</h2>
+<div class="stat-grid">
+
+  <div class="stat-card">
+    <div class="stat-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M7 17H5a2 2 0 0 1-2-2v-3l2.5-6h13L21 12v3a2 2 0 0 1-2 2h-2"/>
+        <circle cx="8.5" cy="17" r="2"/>
+        <circle cx="15.5" cy="17" r="2"/>
+        <path d="M3 12h18"/>
+      </svg>
+    </div>
+    <div class="stat-body">
+      <div class="stat-value">{{ total_cars }}</div>
+      <div class="stat-label">کل خودروها</div>
+    </div>
   </div>
-  <div class="kpi">
-    <p class="kpi-label">⏳ در انتظار بررسی</p>
-    <h2 class="kpi-value" style="color:#d97706">{{ pending_cars }}</h2>
+
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#fffbeb;color:#b45309">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9"/>
+        <line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+    </div>
+    <div class="stat-body">
+      <div class="stat-value" style="color:#92400e">{{ pending_cars }}</div>
+      <div class="stat-label">در انتظار بررسی</div>
+    </div>
   </div>
-  <div class="kpi">
-    <p class="kpi-label">✅ منتشر شده</p>
-    <h2 class="kpi-value" style="color:#16a34a">{{ published_cars }}</h2>
+
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#f0fdf4;color:#166534">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+    </div>
+    <div class="stat-body">
+      <div class="stat-value" style="color:#166534">{{ published_cars }}</div>
+      <div class="stat-label">منتشر شده</div>
+    </div>
   </div>
-  <div class="kpi">
-    <p class="kpi-label">📋 سرنخ‌های جدید</p>
-    <h2 class="kpi-value" style="color:#2563eb">{{ new_leads }}</h2>
+
+  <div class="stat-card">
+    <div class="stat-icon" style="background:#eff6ff;color:#1e40af">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="8" cy="8" r="3"/>
+        <path d="M2 20v-1a6 6 0 0 1 6-6h0a6 6 0 0 1 6 6v1"/>
+        <circle cx="18" cy="9" r="2.5"/>
+        <path d="M22 20v-1a4 4 0 0 0-4-4"/>
+      </svg>
+    </div>
+    <div class="stat-body">
+      <div class="stat-value" style="color:#1e40af">{{ new_leads }}</div>
+      <div class="stat-label">سرنخ‌های جدید</div>
+    </div>
   </div>
+
 </div>
 
 <div class="card">
-  <div class="card-title">📌 فعالیت‌های اخیر</div>
+  <div class="card-header">
+    <div class="card-title">
+      <svg class="icon"><use href="#ic-activity"/></svg>
+      فعالیت‌های اخیر
+    </div>
+  </div>
   <div class="table-wrap">
     <table class="table">
       <thead>
         <tr>
           <th>زمان</th>
-          <th>عمل</th>
+          <th>عملیات</th>
           <th>موجودیت</th>
           <th>شناسه</th>
           <th>کاربر</th>
@@ -37,14 +83,16 @@
       <tbody>
         {% for a in recent_activity %}
         <tr>
-          <td>{{ a.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+          <td style="font-size:12.5px;color:var(--text-3);white-space:nowrap">{{ a.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
           <td><span class="badge badge-{{ a.action.value }}">{{ a.action.value }}</span></td>
           <td>{{ a.entity_type }}</td>
-          <td>{{ a.entity_id or '—' }}</td>
+          <td style="color:var(--text-3);font-size:12.5px">{{ a.entity_id or '—' }}</td>
           <td>{{ a.user_id or 'سیستم' }}</td>
         </tr>
         {% else %}
-        <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:2rem">فعالیتی ثبت نشده است</td></tr>
+        <tr>
+          <td colspan="5" style="text-align:center;padding:32px;color:var(--text-3)">فعالیتی ثبت نشده است</td>
+        </tr>
         {% endfor %}
       </tbody>
     </table>

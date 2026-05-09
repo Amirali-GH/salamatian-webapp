@@ -1,24 +1,30 @@
 {% extends "admin/layout.html" %}
 {% block page_title %}خودروها{% endblock %}
 {% block header_extras %}
-  <a href="/admin/cars/new" class="btn btn-primary">＋ افزودن خودرو</a>
+  <a href="/admin/cars/new" class="btn btn-primary">
+    <svg><use href="#ic-plus"/></svg>
+    افزودن خودرو
+  </a>
 {% endblock %}
 {% block content %}
 
-<form method="get" class="filters">
-  <input name="brand" placeholder="برند" value="{{ filters.brand or '' }}">
-  <input name="model" placeholder="مدل" value="{{ filters.model or '' }}">
-  <input name="location" placeholder="موقعیت" value="{{ filters.location or '' }}">
-  <select name="car_status">
+<form method="get" class="filter-bar" aria-label="فیلتر خودروها">
+  <input name="brand" placeholder="برند" value="{{ filters.brand or '' }}" aria-label="برند">
+  <input name="model" placeholder="مدل" value="{{ filters.model or '' }}" aria-label="مدل">
+  <input name="location" placeholder="موقعیت" value="{{ filters.location or '' }}" aria-label="موقعیت">
+  <select name="car_status" aria-label="وضعیت">
     <option value="">همه وضعیت‌ها</option>
     {% for s in statuses %}
-      <option value="{{ s }}" {% if filters.status and filters.status.value == s %}selected{% endif %}>{{ s }}</option>
+    <option value="{{ s }}" {% if filters.status and filters.status.value == s %}selected{% endif %}>{{ s }}</option>
     {% endfor %}
   </select>
-  <button type="submit" class="btn btn-primary">🔍 فیلتر</button>
+  <button type="submit" class="btn">
+    <svg><use href="#ic-search"/></svg>
+    فیلتر
+  </button>
 </form>
 
-<div class="card" style="padding:0;overflow:hidden">
+<div class="card">
   <div class="table-wrap">
     <table class="table">
       <thead>
@@ -27,7 +33,7 @@
           <th>برند</th>
           <th>مدل</th>
           <th>سال</th>
-          <th>قیمت</th>
+          <th>قیمت (تومان)</th>
           <th>کارکرد</th>
           <th>وضعیت</th>
           <th>منبع</th>
@@ -37,37 +43,48 @@
       <tbody>
         {% for c in items %}
         <tr>
-          <td style="color:var(--muted);font-size:.82rem">{{ c.id }}</td>
+          <td style="color:var(--text-3);font-size:12.5px">{{ c.id }}</td>
           <td style="font-weight:500">{{ c.brand }}</td>
           <td>{{ c.model }}</td>
-          <td>{{ c.year }}</td>
-          <td style="font-weight:600;color:var(--primary)">{{ '{:,.0f}'.format(c.price) }}</td>
-          <td>{{ c.mileage or '—' }}</td>
+          <td style="color:var(--text-3)">{{ c.year }}</td>
+          <td style="font-weight:600;color:var(--brand)">{{ '{:,.0f}'.format(c.price) }}</td>
+          <td style="color:var(--text-3)">{{ c.mileage if c.mileage else '—' }}</td>
           <td><span class="badge badge-{{ c.status.value }}">{{ c.status.value }}</span></td>
           <td><span class="badge">{{ c.source.value }}</span></td>
           <td>
-            <div style="display:flex;gap:.4rem;align-items:center;flex-wrap:wrap">
-              <a href="/admin/cars/{{ c.id }}/edit" class="btn" style="padding:.3rem .7rem;font-size:.82rem">✏ ویرایش</a>
+            <div class="row-actions">
+              <a href="/admin/cars/{{ c.id }}/edit" class="act-btn act-edit" aria-label="ویرایش">
+                <svg><use href="#ic-edit"/></svg>
+                ویرایش
+              </a>
               {% if c.status.value != 'published' %}
-              <form method="post" action="/admin/cars/{{ c.id }}/publish" style="display:inline">
-                <button class="btn" style="padding:.3rem .7rem;font-size:.82rem;color:var(--success)">✅ انتشار</button>
+              <form method="post" action="/admin/cars/{{ c.id }}/publish" style="display:contents">
+                <button type="submit" class="act-btn act-publish" aria-label="انتشار">
+                  <svg><use href="#ic-check"/></svg>
+                  انتشار
+                </button>
               </form>
               {% endif %}
               {% if c.status.value != 'archived' %}
-              <form method="post" action="/admin/cars/{{ c.id }}/archive" style="display:inline">
-                <button class="btn" style="padding:.3rem .7rem;font-size:.82rem;color:var(--muted)">📦 آرشیو</button>
+              <form method="post" action="/admin/cars/{{ c.id }}/archive" style="display:contents">
+                <button type="submit" class="act-btn act-archive" aria-label="آرشیو">
+                  <svg><use href="#ic-archive"/></svg>
+                  آرشیو
+                </button>
               </form>
               {% endif %}
             </div>
           </td>
         </tr>
         {% else %}
-        <tr><td colspan="9" style="text-align:center;color:var(--muted);padding:2.5rem">موردی یافت نشد</td></tr>
+        <tr>
+          <td colspan="9" style="text-align:center;padding:40px;color:var(--text-3)">موردی یافت نشد</td>
+        </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 </div>
-<p style="color:var(--muted);font-size:.85rem;margin-top:.5rem">مجموع: <strong>{{ total }}</strong> خودرو</p>
+<p class="table-count">مجموع: <strong>{{ total }}</strong> خودرو</p>
 
 {% endblock %}

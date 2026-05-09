@@ -1,151 +1,208 @@
 {% extends "admin/layout.html" %}
-{% block page_title %}پیش‌نمایش تغییرات اکسل{% endblock %}
+{% block page_title %}پیش‌نمایش تغییرات{% endblock %}
 {% block content %}
 
-<p style="color:var(--muted);font-size:.88rem;margin-bottom:1.5rem">
-  📄 فایل: <code style="direction:ltr;background:var(--bg);padding:.2rem .5rem;border-radius:4px;border:1px solid var(--border)">{{ file_path }}</code>
+{# ── File info ─────────────────────────────────────────────── #}
+<p style="font-size:13px;color:var(--text-3);margin-bottom:20px;display:flex;align-items:center;gap:8px">
+  <svg class="icon" style="color:var(--text-3)"><use href="#ic-file"/></svg>
+  فایل:
+  <code style="font-family:monospace;direction:ltr;display:inline-block;background:var(--bg);padding:2px 8px;border-radius:var(--r-xs);border:1px solid var(--border);font-size:12px">{{ file_path }}</code>
 </p>
 
-<div class="kpi-grid" style="margin-bottom:1.75rem">
-  <div class="kpi">
-    <p class="kpi-label">جدید</p>
-    <h2 class="kpi-value" style="color:var(--success)">{{ diff.new_cars|length }}</h2>
+{# ── Summary stats ─────────────────────────────────────────── #}
+<div class="stat-grid" style="margin-bottom:24px">
+  <div class="stat-card">
+    <div class="stat-icon" style="background:var(--green-bg);color:var(--green)">
+      <svg><use href="#ic-plus"/></svg>
+    </div>
+    <div class="stat-body">
+      <div class="stat-value" style="color:var(--green)">{{ diff.new_cars|length }}</div>
+      <div class="stat-label">خودرو جدید</div>
+    </div>
   </div>
-  <div class="kpi">
-    <p class="kpi-label">تغییر یافته</p>
-    <h2 class="kpi-value" style="color:#2563eb">{{ diff.updated_cars|length }}</h2>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:var(--blue-bg);color:var(--blue)">
+      <svg><use href="#ic-edit"/></svg>
+    </div>
+    <div class="stat-body">
+      <div class="stat-value" style="color:var(--blue)">{{ diff.updated_cars|length }}</div>
+      <div class="stat-label">تغییر یافته</div>
+    </div>
   </div>
-  <div class="kpi">
-    <p class="kpi-label">برای آرشیو</p>
-    <h2 class="kpi-value" style="color:var(--danger)">{{ diff.removed_cars|length }}</h2>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:var(--red-bg);color:var(--red)">
+      <svg><use href="#ic-archive"/></svg>
+    </div>
+    <div class="stat-body">
+      <div class="stat-value" style="color:var(--red)">{{ diff.removed_cars|length }}</div>
+      <div class="stat-label">برای آرشیو</div>
+    </div>
   </div>
-  <div class="kpi">
-    <p class="kpi-label">بدون تغییر</p>
-    <h2 class="kpi-value" style="color:var(--muted)">{{ diff.unchanged }}</h2>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:var(--bg-2);color:var(--text-3)">
+      <svg><use href="#ic-check"/></svg>
+    </div>
+    <div class="stat-body">
+      <div class="stat-value" style="color:var(--text-3)">{{ diff.unchanged }}</div>
+      <div class="stat-label">بدون تغییر</div>
+    </div>
   </div>
-  <div class="kpi">
-    <p class="kpi-label">هشدار</p>
-    <h2 class="kpi-value" style="color:var(--warning)">{{ diff.warnings|length }}</h2>
+  {% if diff.warnings|length %}
+  <div class="stat-card">
+    <div class="stat-icon" style="background:var(--amber-bg);color:var(--amber)">
+      <svg><use href="#ic-warn"/></svg>
+    </div>
+    <div class="stat-body">
+      <div class="stat-value" style="color:var(--amber)">{{ diff.warnings|length }}</div>
+      <div class="stat-label">هشدار</div>
+    </div>
   </div>
+  {% endif %}
 </div>
 
-<div class="apply-bar">
+{# ── Action buttons ────────────────────────────────────────── #}
+<div class="diff-actions">
   <form method="post" action="/admin/excel/apply/{{ token }}">
-    <button type="submit" class="btn btn-primary">✔ اعمال تغییرات</button>
+    <button type="submit" class="btn btn-primary">
+      <svg><use href="#ic-check"/></svg>
+      اعمال تغییرات
+    </button>
   </form>
-  <a href="/admin/excel" class="btn">✕ انصراف</a>
+  <a href="/admin/excel" class="btn">
+    <svg><use href="#ic-x"/></svg>
+    انصراف
+  </a>
 </div>
 
+{# ── Warnings ─────────────────────────────────────────────── #}
 {% if diff.warnings %}
-<div class="card" style="border-right:4px solid var(--warning);margin-bottom:1.5rem">
-  <div class="card-title" style="color:var(--warning)">⚠ هشدارها ({{ diff.warnings|length }})</div>
-  <div class="table-wrap">
-    <table class="table">
-      <thead><tr><th>ردیف</th><th>مشکل</th></tr></thead>
-      <tbody>
-        {% for w in diff.warnings %}
-        <tr>
-          <td>{{ w.row }}</td>
-          <td>{{ w.issue }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+<div class="diff-section">
+  <div class="diff-title" style="color:var(--amber)">
+    <svg><use href="#ic-warn"/></svg>
+    هشدارها ({{ diff.warnings|length }})
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>ردیف</th><th>مشکل</th></tr></thead>
+        <tbody>
+          {% for w in diff.warnings %}
+          <tr>
+            <td style="color:var(--text-3);font-size:12.5px">{{ w.row }}</td>
+            <td>{{ w.issue }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 {% endif %}
 
+{# ── New cars ─────────────────────────────────────────────── #}
 {% if diff.new_cars %}
-<div class="card" style="border-right:4px solid var(--success);margin-bottom:1.5rem">
-  <div class="card-title" style="color:var(--success)">➕ خودروهای جدید ({{ diff.new_cars|length }})</div>
-  <div class="table-wrap">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>ردیف</th><th>نام خودرو</th><th>مدل</th>
-          <th>کارکرد</th><th>رنگ</th><th>قیمت</th><th>تامین کننده</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for c in diff.new_cars %}
-        <tr>
-          <td style="color:var(--muted)">{{ c.row_number }}</td>
-          <td style="font-weight:500">{{ c.brand }}</td>
-          <td>{{ c.model }}{% if c.year %} <small style="color:var(--muted)">({{ c.year }})</small>{% endif %}</td>
-          <td>{{ c.mileage | default('—') }}</td>
-          <td>{{ c.color | default('—') }}</td>
-          <td style="font-weight:600;color:var(--primary)">{{ c.price }}</td>
-          <td>{{ c.supplier | default('—') }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+<div class="diff-section">
+  <div class="diff-title" style="color:var(--green)">
+    <svg><use href="#ic-plus"/></svg>
+    خودروهای جدید ({{ diff.new_cars|length }})
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ردیف</th><th>نام خودرو</th><th>مدل</th>
+            <th>کارکرد</th><th>رنگ</th><th>قیمت</th><th>تامین کننده</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in diff.new_cars %}
+          <tr>
+            <td style="color:var(--text-3);font-size:12.5px">{{ c.row_number }}</td>
+            <td style="font-weight:500">{{ c.brand }}</td>
+            <td>{{ c.model }}{% if c.year %} <span style="color:var(--text-3);font-size:12px">({{ c.year }})</span>{% endif %}</td>
+            <td style="color:var(--text-3)">{{ c.mileage if c.mileage else '—' }}</td>
+            <td style="color:var(--text-3)">{{ c.color if c.color else '—' }}</td>
+            <td style="font-weight:600;color:var(--brand)">{{ c.price }}</td>
+            <td style="color:var(--text-3)">{{ c.supplier if c.supplier else '—' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 {% endif %}
 
+{# ── Updated cars ─────────────────────────────────────────── #}
 {% if diff.updated_cars %}
-<div class="card" style="border-right:4px solid #2563eb;margin-bottom:1.5rem">
-  <div class="card-title" style="color:#2563eb">✏ تغییر یافته ({{ diff.updated_cars|length }})</div>
-  <div class="table-wrap">
-    <table class="table">
-      <thead>
-        <tr><th>شناسه</th><th>نام خودرو</th><th>مدل</th><th>تغییرات</th></tr>
-      </thead>
-      <tbody>
-        {% for c in diff.updated_cars %}
-        <tr>
-          <td style="color:var(--muted)">{{ c.car_id }}</td>
-          <td style="font-weight:500">{{ c.brand }}</td>
-          <td>{{ c.model }}{% if c.year %} <small style="color:var(--muted)">({{ c.year }})</small>{% endif %}</td>
-          <td>
-            {% set labels = {
-              "price": "قیمت",
-              "mileage": "کارکرد",
-              "color": "رنگ",
-              "supplier": "تامین کننده",
-              "location": "موقعیت",
-              "body_status": "وضعیت بدنه",
-              "description": "توضیحات",
-              "gearbox": "گیربکس",
-              "fuel_type": "سوخت",
-            } %}
-            {% for field, vals in c.changes.items() %}
-            <div style="margin:.2rem 0;font-size:.88rem">
-              <b style="color:var(--muted)">{{ labels.get(field, field) }}:</b>
-              <span style="color:var(--danger);text-decoration:line-through">{{ vals.old or '—' }}</span>
-              <span style="color:var(--muted);margin:0 .3rem">→</span>
-              <span style="color:var(--success);font-weight:600">{{ vals.new or '—' }}</span>
-            </div>
-            {% endfor %}
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+<div class="diff-section">
+  <div class="diff-title" style="color:var(--blue)">
+    <svg><use href="#ic-edit"/></svg>
+    تغییر یافته ({{ diff.updated_cars|length }})
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr><th>شناسه</th><th>نام خودرو</th><th>مدل</th><th>تغییرات</th></tr>
+        </thead>
+        <tbody>
+          {% for c in diff.updated_cars %}
+          <tr>
+            <td style="color:var(--text-3);font-size:12.5px">{{ c.car_id }}</td>
+            <td style="font-weight:500">{{ c.brand }}</td>
+            <td>{{ c.model }}{% if c.year %} <span style="color:var(--text-3);font-size:12px">({{ c.year }})</span>{% endif %}</td>
+            <td>
+              {% set labels = {
+                "price":"قیمت","mileage":"کارکرد","color":"رنگ",
+                "supplier":"تامین کننده","location":"موقعیت",
+                "body_status":"وضعیت بدنه","description":"توضیحات",
+                "gearbox":"گیربکس","fuel_type":"سوخت"
+              } %}
+              {% for field, vals in c.changes.items() %}
+              <div style="display:flex;align-items:center;gap:8px;margin:3px 0;font-size:13px">
+                <span style="color:var(--text-3);font-size:12px;min-width:60px">{{ labels.get(field, field) }}</span>
+                <span style="color:var(--red);text-decoration:line-through">{{ vals.old or '—' }}</span>
+                <svg class="icon-sm" style="color:var(--text-3)"><use href="#ic-arrow-up"/></svg>
+                <span style="color:var(--green);font-weight:500">{{ vals.new or '—' }}</span>
+              </div>
+              {% endfor %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 {% endif %}
 
+{# ── Removed cars ─────────────────────────────────────────── #}
 {% if diff.removed_cars %}
-<div class="card" style="border-right:4px solid var(--danger);margin-bottom:1.5rem">
-  <div class="card-title" style="color:var(--danger)">🗄 آرشیو می‌شوند ({{ diff.removed_cars|length }})</div>
-  <div class="table-wrap">
-    <table class="table">
-      <thead>
-        <tr><th>شناسه</th><th>نام خودرو</th><th>مدل</th><th>قیمت</th></tr>
-      </thead>
-      <tbody>
-        {% for c in diff.removed_cars %}
-        <tr>
-          <td style="color:var(--muted)">{{ c.car_id }}</td>
-          <td style="font-weight:500">{{ c.brand }}</td>
-          <td>{{ c.model }}{% if c.year %} <small style="color:var(--muted)">({{ c.year }})</small>{% endif %}</td>
-          <td>{{ c.price }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+<div class="diff-section">
+  <div class="diff-title" style="color:var(--red)">
+    <svg><use href="#ic-archive"/></svg>
+    آرشیو می‌شوند ({{ diff.removed_cars|length }})
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr><th>شناسه</th><th>نام خودرو</th><th>مدل</th><th>قیمت</th></tr>
+        </thead>
+        <tbody>
+          {% for c in diff.removed_cars %}
+          <tr>
+            <td style="color:var(--text-3);font-size:12.5px">{{ c.car_id }}</td>
+            <td style="font-weight:500">{{ c.brand }}</td>
+            <td>{{ c.model }}{% if c.year %} <span style="color:var(--text-3);font-size:12px">({{ c.year }})</span>{% endif %}</td>
+            <td>{{ c.price }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 {% endif %}
