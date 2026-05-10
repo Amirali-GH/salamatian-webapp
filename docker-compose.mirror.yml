@@ -20,13 +20,13 @@
 #   apt/deb  → mirror-linux.runflare.com/ubuntu
 #   PyPI     → mirror-pypi.runflare.com/simple
 #
-# git pull
-# docker-compose -f docker-compose.mirror.yml stop web
-# docker-compose -f docker-compose.mirror.yml rm web
-# docker-compose -f docker-compose.mirror.yml build web
-# docker-compose -f docker-compose.mirror.yml up -d web
-# sleep 10
-# docker-compose -f docker-compose.mirror.yml restart nginx
+#  git pull
+#  docker-compose -f docker-compose.mirror.yml stop web
+#  docker-compose -f docker-compose.mirror.yml rm web
+#  docker-compose -f docker-compose.mirror.yml build web
+#  docker-compose -f docker-compose.mirror.yml up -d web
+#  sleep 5
+#  docker-compose -f docker-compose.mirror.yml restart nginx
 ###################################################################
 
 services:
