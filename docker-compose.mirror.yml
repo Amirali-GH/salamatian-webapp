@@ -19,6 +19,13 @@
 #   Docker   → mirror-docker.runflare.com
 #   apt/deb  → mirror-linux.runflare.com/ubuntu
 #   PyPI     → mirror-pypi.runflare.com/simple
+
+# git pull
+# docker-compose -f docker-compose.mirror.yml stop web
+# docker-compose -f docker-compose.mirror.yml rm web
+# docker-compose -f docker-compose.mirror.yml build web
+# docker-compose -f docker-compose.mirror.yml up -d web
+# docker-compose -f docker-compose.mirror.yml restart nginx
 ###################################################################
 
 services:
